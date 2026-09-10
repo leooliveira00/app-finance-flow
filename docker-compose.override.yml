@@ -1,0 +1,25 @@
+# Override para rodar localmente SEM o Traefik (ex.: Docker Desktop no Windows,
+# ou qualquer host que não tenha o proxy reverso já publicado). O Compose
+# carrega este arquivo automaticamente junto com o docker-compose.yml (mesmo
+# diretório, sem precisar de -f).
+#
+# O que ele faz:
+#   - remove o frontend da rede traefik-public e das labels de roteamento
+#   - expõe o frontend direto no host (http://localhost:${FRONTEND_PORT:-8080})
+#   - remove a rede externa traefik-public (que não existe fora de um host com
+#     Traefik já subido)
+#
+# Hosts que JÁ têm o Traefik (dev.financeflow.example.com, financeflow.example.com): apague
+# ou renomeie este arquivo antes de "docker compose up" — do contrário o app
+# sobe sem TLS e sem o roteamento por domínio do Traefik.
+
+services:
+  frontend:
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    networks: !override
+      - internal
+    labels: !override []
+
+networks:
+  traefik-public: !reset null

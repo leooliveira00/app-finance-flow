@@ -1,0 +1,126 @@
+# docker-compose do FinanceFlow.
+#
+#   ${ENV_PREFIX}-financeflow-postgres : PostgreSQL (volume nomeado, sem porta publicada)
+#   ${ENV_PREFIX}-financeflow-backend  : API FastAPI (uvicorn); schema aplicado no lifespan
+#   ${ENV_PREFIX}-financeflow-frontend : SPA React (nginx); proxy /api/ -> backend:8000
+#
+# O frontend é publicado pelo Traefik externo; o backend NÃO é publicado (mesma
+# origem para o navegador, via proxy do nginx). Hot reload e porta 8000 exposta
+# ficam no docker-compose.override.yml, que só existe nas máquinas de dev.
+#
+# Regra do padrão: todo ${VAR:-default} usa como default o valor de PRODUÇÃO,
+# para que um .env ausente não quebre o prod. Segredos usam ${VAR:?}, que falha
+# explicitamente em vez de subir com valor vazio.
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ${ENV_PREFIX:-prod}-financeflow-frontend
+    networks:
+      - traefik-public   # alcançável pelo Traefik
+      - internal         # alcança o backend (proxy /api/)
+    depends_on:
+      - backend
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # --- Router HTTPS (o de produção, e o de dev depois do certificado).
+      # `tls=true` com `certresolver` VAZIO = certificado vindo do provider de
+      # arquivo do Traefik (/opt/docker/app-traefik/dynamic/tls-certs.yml), que
+      # é como os certificados da CA do AD Windows entram. Só preencha
+      # FRONTEND_CERTRESOLVER se algum dia o certificado passar a vir de ACME.
+      # ATENÇÃO: esta label de TLS só é válida em router `websecure`. Emiti-la
+      # num router de entrypoint `web` liga TLS ali e o router para de casar — o
+      # Traefik responde 404 sem router no log de acesso.
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow.rule=Host(`${APP_DOMAIN:-financeflow.example.com}`)"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow.entrypoints=websecure"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow.tls=true"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow.tls.certresolver=${FRONTEND_CERTRESOLVER:-}"
+      - "traefik.http.services.${ENV_PREFIX:-prod}-financeflow.loadbalancer.server.port=80"
+      # --- Router HTTP (:80): SEMPRE redireciona para HTTPS, nos dois hosts.
+      # Em host que ainda não tem o próprio certificado, o Traefik serve o
+      # certificado padrão do store e o navegador acusa nome incorreto — a
+      # aplicação funciona ao aceitar a exceção (não enviamos HSTS), e o aviso
+      # desaparece quando o certificado daquele host é instalado.
+      # `service` permanece declarado porque o middleware responde antes: ele é
+      # o destino caso o redirect seja removido algum dia.
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow-web.rule=Host(`${APP_DOMAIN:-financeflow.example.com}`)"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow-web.entrypoints=web"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow-web.service=${ENV_PREFIX:-prod}-financeflow"
+      - "traefik.http.middlewares.${ENV_PREFIX:-prod}-financeflow-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.${ENV_PREFIX:-prod}-financeflow-redirect.redirectscheme.permanent=true"
+      # Rate-limit na borda, por IP: avg = req/s sustentado, burst = pico.
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow.middlewares=${ENV_PREFIX:-prod}-financeflow-ratelimit"
+      - "traefik.http.routers.${ENV_PREFIX:-prod}-financeflow-web.middlewares=${ENV_PREFIX:-prod}-financeflow-ratelimit,${ENV_PREFIX:-prod}-financeflow-redirect"
+      - "traefik.http.middlewares.${ENV_PREFIX:-prod}-financeflow-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.${ENV_PREFIX:-prod}-financeflow-ratelimit.ratelimit.burst=200"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ${ENV_PREFIX:-prod}-financeflow-backend
+    # Integrações (Protheus, SMTP, JWT) vêm do .env do backend.
+    env_file:
+      - ./backend/.env
+    # DATABASE_URL definida aqui: depende do nome do serviço postgres e sobrepõe
+    # o que houver no .env.
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-financeflow}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env da raiz}@postgres:5432/${POSTGRES_DB:-financeflow}
+      # Ambiente da instância, derivado do ENV_PREFIX (fonte única). O backend
+      # usa isto para NÃO criar os usuários de teste do seed em produção.
+      APP_ENV: ${ENV_PREFIX:-prod}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Sem healthcheck, um backend que subiu mas não responde fica "running" e o
+      # frontend serve a SPA contra uma API morta. `urllib` já vem na imagem
+      # slim (não há curl), então não adiciona dependência.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - internal
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${ENV_PREFIX:-prod}-financeflow-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-financeflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env da raiz}
+      POSTGRES_DB: ${POSTGRES_DB:-financeflow}
+    volumes:
+      - financeflow-pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-financeflow} -d ${POSTGRES_DB:-financeflow}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  financeflow-pgdata:
+
+networks:
+  # Rede do Traefik existente (criada fora deste compose).
+  traefik-public:
+    external: true
+  # Rede interna frontend <-> backend <-> postgres, com subnet FIXA. Sem fixar,
+  # o Docker sorteia a faixa e já colidiu três vezes com hosts reais da rede
+  # corporativa em 172.21 — a colisão derruba o acesso ao ERP, não só a app.
+  # 172.24.0.0/16 é a faixa que esta rede usa em dev. Em outro host a faixa pode
+  # estar ocupada: confira com `docker network ls` + `inspect` e, se preciso,
+  # defina INTERNAL_SUBNET no .env daquele host (não edite este arquivo, que é
+  # versionado e compartilhado pelos dois ambientes).
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${INTERNAL_SUBNET:-172.24.0.0/16}

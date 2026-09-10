@@ -1,0 +1,20 @@
+{
+  "name": "financeflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Raiz do repositório — hospeda a versão do projeto e o ferramental de release. Os serviços ficam em backend/ (FastAPI) e frontend/ (Vite).",
+  "scripts": {
+    "release": "semantic-release --no-ci",
+    "release:dry": "semantic-release --no-ci --dry-run"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "semantic-release": "^25.0.9"
+  },
+  "engines": {
+    "node": "^22.22.2 || >=24.15"
+  }
+}

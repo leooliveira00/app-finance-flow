@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Esqueleto de notificacao da plataforma (reaproveitavel por qualquer processo).
+  Slots neutros: subtitulo (linha do cabecalho), intro, conteudo (bloco(s) do
+  processo) e assinatura/processo/area no rodape.
+
+  Template de E-MAIL, nao de pagina: tabela + estilo INLINE, porque Outlook e
+  parte dos webmails ignoram style e CSS externo. Paleta = a da ferramenta
+  (frontend/src/index.css): navy 1e3a5f (brand-900), 14283f (brand-950),
+  eef4fa (brand-50), borda d7e6f3 (brand-100).
+
+  ATENCAO: nao escreva placeholders (sigilo de dolar) dentro de comentario. A
+  substituicao (string.Template) nao distingue comentario de marcacao: o valor
+  seria injetado aqui TAMBEM, duplicando o conteudo do e-mail. Os nomes usados
+  estao em services/notificacao.py::_corpo_html. Valores chegam ja escapados.
+-->
+<html lang="pt-BR">
+  <body style="margin:0;padding:24px;background:#f8fafc;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
+           style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d7e6f3;
+                  border-radius:12px;overflow:hidden;">
+      <tr>
+        <td style="background:#1e3a5f;padding:16px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="vertical-align:middle;">
+                <div style="font:700 16px Arial,Helvetica,sans-serif;color:#ffffff;">FinanceFlow</div>
+                <div style="margin-top:3px;font:400 12px Arial,Helvetica,sans-serif;color:#eef4fa;">
+                  $subtitulo
+                </div>
+              </td>
+              <td align="right" width="120" style="vertical-align:middle;width:120px;">
+                <img src="cid:logo" alt="FinanceFlow" width="120" height="68"
+                     style="display:block;border:0;outline:none;text-decoration:none;
+                            width:120px;height:auto;max-width:120px;">
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:16px 16px 4px;font:400 13px Arial,Helvetica,sans-serif;color:#0f172a;">
+          $intro
+        </td>
+      </tr>
+      $conteudo
+      <tr>
+        <td style="padding:14px 16px;border-top:1px solid #d7e6f3;background:#eef4fa;">
+          <div style="font:400 11px Arial,Helvetica,sans-serif;color:#64748b;line-height:1.6;">
+            $assinatura<br>
+            Processo <strong style="color:#14283f;">$processo</strong> &middot;
+            &Aacute;rea <strong style="color:#14283f;">$area</strong> &middot;
+            mensagem autom&aacute;tica, n&atilde;o &eacute; necess&aacute;rio responder.
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

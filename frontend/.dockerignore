@@ -1,0 +1,13 @@
+# `node_modules` e `dist` locais nunca entram no contexto: a imagem instala e
+# builda do zero, e copiar a árvore local levaria binários compilados para outra
+# arquitetura. `.env` fica fora porque no Vite qualquer variável embarcada vira
+# conteúdo público do bundle.
+node_modules
+dist
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+*.log

@@ -1,0 +1,41 @@
+# Dependências do backend — FinanceFlow (FastAPI).
+#
+# Versões FIXAS (==). É o equivalente do lockfile do Node: garante que a imagem
+# construída hoje e a construída em três meses instalem o mesmo conjunto. Antes
+# eram pisos (>=), então cada rebuild podia trazer versão nova sem revisão.
+# Os valores abaixo são os que já estavam em uso no container, então fixar não
+# mudou nada em execução.
+#
+# Para atualizar: suba a versão aqui, num commit próprio, e rode o gate
+# (`ruff check app && mypy app`) antes de publicar.
+
+# --- Framework web / ASGI ---
+fastapi==0.141.1
+uvicorn[standard]==0.52.4      # servidor ASGI (inclui hot reload em dev)
+python-multipart==0.0.32       # parsing de uploads multipart/form-data
+
+# --- Configuração ---
+pydantic-settings==2.15.0      # Settings tipadas a partir do .env (config.py)
+python-dotenv==1.2.3           # carregamento de variáveis de ambiente
+
+# --- Processamento de planilhas ---
+pandas==3.0.5                  # manipulação dos dados de entrada
+openpyxl==3.1.5                # leitura/escrita de arquivos .xlsx
+
+# --- Extração de PDF (NFs e boletos p/ reconciliação) ---
+pypdf==6.16.2                  # leitura de texto de PDFs digitais (sem OCR)
+
+# --- Cliente HTTP (API Protheus: colaboradores e lançamentos) ---
+httpx==0.28.1                  # chamadas REST assíncronas ao Protheus
+
+# --- Autenticação (login + segregação por área) ---
+pyjwt==2.13.0                  # emissão/validação de JWT
+bcrypt==5.0.0                  # hash de senhas
+
+# --- Banco de dados (Postgres) ---
+sqlalchemy==2.0.52             # ORM
+psycopg[binary]==3.3.5         # driver PostgreSQL (psycopg3)
+
+# --- Qualidade: o único gate automatizado do backend (ver pyproject.toml) ---
+ruff==0.16.5
+mypy==2.3.1

@@ -1,0 +1,59 @@
+# Ferramentas do backend — FinanceFlow.
+#
+# Python não tem checagem embutida como o `tsc --noEmit` do frontend: sem
+# declarar ferramenta, o backend fica sem nenhum gate automatizado, que era o
+# caso até aqui. `ruff` cobre lint e ordem de imports; `mypy` cobre tipos.
+#
+#   docker compose exec backend ruff check app
+#   docker compose exec backend mypy app
+#
+# Não há suíte de testes neste projeto, então estes dois comandos são o gate.
+
+[project]
+name = "financeflow-backend"
+# Mantida pelo semantic-release (ver .releaserc.json na raiz), junto de
+# app/version.py — não editar à mão.
+version = "1.0.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# O container roda como usuário não-root e o código vem por volume: o cache não
+# pode ser escrito em /app. /tmp é gravável e descartável.
+cache-dir = "/tmp/.ruff_cache"
+
+[tool.ruff.lint]
+select = [
+  "E", "W",   # pycodestyle
+  "F",        # pyflakes (import morto, variável não usada)
+  "I",        # isort (ordem dos imports)
+  "B",        # bugbear (armadilhas comuns)
+  "UP",       # pyupgrade (sintaxe moderna)
+  "ASYNC",    # chamada bloqueante dentro de código async
+]
+ignore = [
+  "E501",     # comprimento de linha: os comentários explicativos do projeto são longos
+  "B008",     # `Depends()` no default é o idioma do FastAPI
+  # `l` é usado como iterador de "linha" (do boleto, do rateio) em 30 lugares,
+  # sobretudo na telefonia. Renomear para `linha` colidiria com a variável
+  # `linha` que já existe no mesmo escopo em vários desses trechos, então o
+  # ganho (legibilidade de `l` vs `1`) não paga o risco numa regra de negócio
+  # sem teste automatizado.
+  "E741",     # ambiguous-variable-name
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Migrações e seed carregam SQL e literais longos de propósito.
+"app/db/migracoes.py" = ["E501"]
+"app/db/seed.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+cache_dir = "/tmp/.mypy_cache"
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
+# As bibliotecas do projeto (pandas, openpyxl, pypdf) não distribuem stubs
+# completos; exigir isso pararia o gate por motivo alheio ao código.
+ignore_missing_imports = true

@@ -1,0 +1,65 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            { "type": "feat", "section": "Funcionalidades" },
+            { "type": "fix", "section": "Correções" },
+            { "type": "perf", "section": "Performance" },
+            { "type": "refactor", "section": "Refatorações" },
+            { "type": "docs", "hidden": true },
+            { "type": "chore", "hidden": true },
+            { "type": "style", "hidden": true },
+            { "type": "test", "hidden": true },
+            { "type": "build", "hidden": true },
+            { "type": "ci", "hidden": true }
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# Changelog\n\nTodas as versões relevantes deste projeto são documentadas aqui.\nO formato segue [Conventional Commits](https://www.conventionalcommits.org/pt-br/) e [Semantic Versioning](https://semver.org/lang/pt-BR/)."
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "npm --prefix frontend version ${nextRelease.version} --no-git-tag-version --allow-same-version && sed -i 's/^version = \".*\"/version = \"${nextRelease.version}\"/' backend/pyproject.toml && scripts/escreve-versao-backend.sh ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "package.json",
+          "package-lock.json",
+          "frontend/package.json",
+          "frontend/package-lock.json",
+          "backend/pyproject.toml",
+          "backend/app/version.py"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}
