@@ -121,7 +121,7 @@ export default function App() {
   // competência já vem formatada ("MM/AAAA") do próprio boleto.
   const competenciaAtual =
     resultado && selectedTipo === api.TIPO_CLARO
-      ? api.comoResultadoClaro(resultado).boletos?.[0]?.competencia ?? ''
+      ? (api.ehResultadoClaro(resultado.resultado) ? resultado.resultado.boletos[0]?.competencia ?? '' : '')
       : formatarCompetencia(resultado?.resultado.itens?.[0]?.competencia);
 
   // Abre o modal único de confirmação (gravar -> ERP -> fiscal, conforme o tipo).

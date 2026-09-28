@@ -155,13 +155,13 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
   const podeConfirmar = !exigeCompPagamento || compPagamento.replace(/\D/g, '').length === 6;
   // Quem fica FORA do lançamento em folha (PJ ou teto atingido), contado por
   // pessoa: o snapshot tem um item por colaborador × operadora.
-  const cpfsForaDoErp = exigeCompPagamento
-    ? new Set(
-        (itensSnapshot as unknown as api.ItemCopartResultado[])
-          .filter((i) => i.bloqueado_envio ?? (i.pj || i.teto_aplicado))
-          .map((i) => i.cpf),
-      ).size
-    : 0;
+  const itensCopart: api.ItemCopartResultado[] =
+    exigeCompPagamento && api.ehResultadoCopart(snapshot) ? snapshot.itens : [];
+  const cpfsForaDoErp = new Set(
+    itensCopart
+      .filter((i) => i.bloqueado_envio ?? (i.pj || i.teto_aplicado))
+      .map((i) => i.cpf),
+  ).size;
 
   const rodarFiscal = async (id: number) => {
     setStFiscal('running'); setFiscalMsg('');

@@ -88,8 +88,7 @@ export function umTituloPorDocumento(tipo: string): boolean {
  *  lança por empresa, caso em que não há contagem a exibir. */
 export function qtdDocumentos(tipo: string, snapshot: Resultado | null | undefined): number {
   if (!umTituloPorDocumento(tipo) || !snapshot) return 0;
-  const boletos = (snapshot as unknown as { boletos?: unknown[] }).boletos;
-  return Array.isArray(boletos) ? boletos.length : 0;
+  return ehResultadoClaro(snapshot) ? snapshot.boletos.length : 0;
 }
 
 /** Rateios de desconto em folha: exigem a competência da FOLHA no envio ao ERP
@@ -253,9 +252,26 @@ export interface ResultadoCopart {
 /** Tipo do rateio de coparticipação (usado para escolher a tela de resultado). */
 export const TIPO_COPARTICIPACAO = 'coparticipacao-plano-saude';
 
+// O `resultado` da resposta muda de formato conforme o `tipo` do rateio, mas
+// chega tipado como o `Resultado` genérico. Os type guards abaixo conferem em
+// runtime os campos que distinguem cada formato (não validam item a item: o
+// contrato de cada módulo é o backend), em vez de um cast cego.
+function ehObjeto(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+
+export function ehResultadoCopart(x: unknown): x is ResultadoCopart {
+  return ehObjeto(x) && Array.isArray(x.itens) && Array.isArray(x.divergencias)
+    && 'total_descontado' in x;
+}
+
 /** Acessa o resultado da coparticipação a partir da resposta genérica. */
 export function comoResultadoCopart(resposta: RespostaProcessamento): ResultadoCopart {
-  return resposta.resultado as unknown as ResultadoCopart;
+  const r = resposta.resultado;
+  if (!ehResultadoCopart(r)) {
+    throw new Error(`Resultado do rateio '${resposta.tipo}' não tem o formato da coparticipação.`);
+  }
+  return r;
 }
 
 // ---- Telefonia Claro (um título por boleto; formato próprio) ----
@@ -381,9 +397,17 @@ export interface ResultadoClaro {
 /** Tipo do rateio de telefonia (usado para escolher a tela de resultado). */
 export const TIPO_CLARO = 'pagamento-claro';
 
+export function ehResultadoClaro(x: unknown): x is ResultadoClaro {
+  return ehObjeto(x) && Array.isArray(x.boletos);
+}
+
 /** Acessa o resultado da telefonia a partir da resposta genérica. */
 export function comoResultadoClaro(resposta: RespostaProcessamento): ResultadoClaro {
-  return resposta.resultado as unknown as ResultadoClaro;
+  const r = resposta.resultado;
+  if (!ehResultadoClaro(r)) {
+    throw new Error(`Resultado do rateio '${resposta.tipo}' não tem o formato da telefonia.`);
+  }
+  return r;
 }
 
 // ---- Token ----
