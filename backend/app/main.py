@@ -151,12 +151,14 @@ def create_app() -> FastAPI:
 
     # CORS: libera o frontend (Vite/nginx) a consumir a API.
     # As origens permitidas são configuráveis via .env (ver config.py).
+    # Métodos e headers se limitam ao que a API e o frontend (api.ts) usam; o
+    # preflight OPTIONS é respondido pelo próprio middleware.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.lista_cors(),
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 
     # Registro dos routers da aplicação.
