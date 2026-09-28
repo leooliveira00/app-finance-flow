@@ -46,7 +46,12 @@ não está nas dependências). Na subida, o `lifespan`
 ([main.py](backend/app/main.py)) cria o schema (`create_all`), aplica migrações
 idempotentes ([migracoes.py](backend/app/db/migracoes.py)), roda o seed inicial e
 dispara a descoberta de módulos de rateio. Como a migração roda no `lifespan`, o
-serviço precisa ficar em **réplica única**.
+serviço precisa ficar em **réplica única**. O mesmo vale para os workers: o
+último resultado processado (pré-confirmação) vive em memória
+(`_ULTIMO_RESULTADO` em [rateio.py](backend/app/routers/rateio.py)) e serve os
+downloads CSV/TXT dessa etapa, então **não adicione `--workers`** ao uvicorn
+sem antes mover esse estado para um store compartilhado (Redis ou tabela com
+TTL). Execuções confirmadas já estão no Postgres e não são afetadas.
 
 **Hot reload não é da imagem.** A imagem sobe o uvicorn sem `--reload`, como
 usuário `app` (não-root), com `tini` como PID 1 e `--proxy-headers`. Mudança em

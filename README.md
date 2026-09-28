@@ -70,6 +70,19 @@ apontar cada uma para ambientes diferentes. Por exemplo, é possível consultar
 dados reais e escrever apenas num ambiente de teste do ERP até a validação de
 um go-live.
 
+**Limitação conhecida: um processo de backend.** O último resultado processado
+(antes de ser confirmado como execução) fica num dicionário em memória,
+por usuário e tipo de rateio (`_ULTIMO_RESULTADO` em
+`backend/app/routers/rateio.py`), e serve os downloads de CSV/TXT dessa etapa.
+Isso é correto com um único worker do uvicorn e uma única réplica, que é como o
+compose sobe o serviço (a réplica única já é exigida porque as migrações rodam
+na subida). Com mais de um worker, o download poderia cair num processo que não
+processou o arquivo e responder 404; um restart do container também descarta
+esse resultado, e basta processar de novo. Execuções confirmadas não dependem
+disso: ficam no Postgres e seus arquivos são gerados a partir do banco. Escalar
+horizontalmente exigiria mover esse estado para um store compartilhado (Redis ou
+tabela com TTL).
+
 Mais detalhes de arquitetura e das regras de negócio de cada módulo estão em
 [CLAUDE.md](CLAUDE.md).
 
