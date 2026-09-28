@@ -168,3 +168,17 @@ para uma instância real (ou de teste) de um Protheus. O fallback existe
 somente para a etapa de leitura e cálculo, nunca para o lançamento. A
 arquitetura e as regras de negócio da integração (payload, retry,
 reconciliação) estão documentadas em detalhe no [CLAUDE.md](CLAUDE.md).
+
+## Histórico e versionamento
+
+Esta é uma versão pública e anonimizada de uma aplicação desenvolvida para uso
+interno. O histórico original foi **consolidado num único commit inicial** para
+a publicação, pois os commits originais continham informações privadas. Os commits posteriores a ele seguem o fluxo normal do projeto.
+
+O projeto segue [Conventional Commits](https://www.conventionalcommits.org/) e é
+versionado como uma unidade (backend e frontend juntos) via
+[semantic-release](https://semantic-release.gitbook.io/): a versão, o
+[CHANGELOG.md](CHANGELOG.md) e a tag são gerados a partir das mensagens de
+commit (`npm run release`, na raiz). A versão em execução aparece no rodapé da
+interface e em `GET /api/health`. O fluxo completo está descrito na seção
+"Versionamento" do [CLAUDE.md](CLAUDE.md).
