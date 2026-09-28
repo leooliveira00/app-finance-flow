@@ -144,10 +144,13 @@ export default function HistoryScreen({ addToast, tipoInicial }: HistoryScreenPr
     recarregar().finally(() => setCarregando(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // O dashboard pode pedir outro rateio sem desmontar a tela.
-  useEffect(() => {
+  // O dashboard pode pedir outro rateio sem desmontar a tela: ao mudar a prop,
+  // o filtro acompanha já neste render (sem efeito e sem render intermediário).
+  const [tipoInicialAnterior, setTipoInicialAnterior] = useState(tipoInicial);
+  if (tipoInicial !== tipoInicialAnterior) {
+    setTipoInicialAnterior(tipoInicial);
     setTipoFiltro(tipoInicial ?? 'Todos');
-  }, [tipoInicial]);
+  }
 
   // Rateios com execução gravada — o filtro só oferece o que existe no histórico.
   const tiposPresentes = useMemo(

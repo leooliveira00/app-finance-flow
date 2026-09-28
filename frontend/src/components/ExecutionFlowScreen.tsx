@@ -149,7 +149,6 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
   // ao concluir, o handleProcessar leva a 100%.
   useEffect(() => {
     if (!processando) return;
-    setProgresso(8);
     const id = setInterval(() => {
       setProgresso((p) => (p >= 90 ? p : p + Math.max(1, Math.round((90 - p) * 0.06))));
     }, 350);
@@ -183,6 +182,7 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
       addToast(orientacoesDoTipo(tipo).semArquivo, 'warning');
       return;
     }
+    setProgresso(8);
     setProcessando(true);
     try {
       const resposta = await api.processar(tipo, arquivos);

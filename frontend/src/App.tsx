@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActiveTab, ViewState, Toast } from './types';
 import * as api from './api';
 import { Usuario, RespostaProcessamento } from './api';
@@ -30,7 +30,8 @@ function formatarCompetencia(competencia?: string): string {
 
 export default function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [restaurandoSessao, setRestaurandoSessao] = useState(true);
+  // Sem token não há sessão a restaurar: nasce já resolvido, sem esperar o efeito.
+  const [restaurandoSessao, setRestaurandoSessao] = useState(() => api.getToken() !== null);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [viewState, setViewState] = useState<ViewState>('list');
@@ -51,18 +52,17 @@ export default function App() {
 
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  // Id sequencial: único na sessão, sem depender de aleatoriedade.
+  const proximoToastId = useRef(0);
   const addToast = (message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = String(++proximoToastId.current);
     setToasts((prev) => [...prev, { id, message, type }]);
   };
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   // Restaura a sessão a partir do token salvo.
   useEffect(() => {
-    if (!api.getToken()) {
-      setRestaurandoSessao(false);
-      return;
-    }
+    if (!api.getToken()) return;
     api
       .me()
       .then(setUsuario)

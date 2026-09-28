@@ -58,12 +58,16 @@ export default function Dropdown({
     return opcoes.filter((o) => normalizar(o.label).includes(q));
   }, [opcoes, busca]);
 
-  // Cada abertura começa limpa, com o cursor na busca: abrir e digitar.
+  // Cada abertura começa limpa (a busca é zerada ao abrir, em `alternar`), com o
+  // cursor na busca: abrir e digitar.
   useEffect(() => {
-    if (!aberto) return;
-    setBusca('');
-    if (mostrarBusca) inputRef.current?.focus();
+    if (aberto && mostrarBusca) inputRef.current?.focus();
   }, [aberto, mostrarBusca]);
+
+  const alternar = () => {
+    if (!aberto) setBusca('');
+    setAberto(!aberto);
+  };
 
   const fechar = () => setAberto(false);
   const selecionar = (v: string) => {
@@ -75,7 +79,7 @@ export default function Dropdown({
     <div className="relative">
       <button
         type="button"
-        onClick={() => setAberto((a) => !a)}
+        onClick={alternar}
         className={`flex items-center justify-between gap-1.5 py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 cursor-pointer whitespace-nowrap ${className}`}
       >
         <span className="truncate">{atual?.label}</span>
