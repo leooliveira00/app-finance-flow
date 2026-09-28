@@ -907,15 +907,7 @@ export async function notificarFiscal(id: number): Promise<NotificacaoResposta> 
 
 export async function baixarDocumentoExecucao(execId: number, docId: number, nome: string): Promise<void> {
   const resp = await request(`/api/execucoes/${execId}/documentos/${docId}`);
-  const blob = await resp.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nome;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  await salvarArquivo(resp, nome);
 }
 
 export async function getModulos(incluirInativos = false): Promise<Modulo[]> {
@@ -1085,24 +1077,24 @@ export async function processar(
   return resp.json();
 }
 
-export async function baixarCsv(tipo: string): Promise<void> {
-  const resp = await request(`/api/rateio/${encodeURIComponent(tipo)}/resultado.csv`);
+/** Dispara o download de uma resposta como arquivo. */
+async function salvarArquivo(resp: Response, nome: string): Promise<void> {
   const blob = await resp.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `rateio_${tipo}.csv`;
+  a.download = nome;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
 }
 
-/**
- * Baixa o TXT de redundância p/ importação manual no ERP (fallback ao envio via
- * API). `competencia` no formato AAAAMM (ex.: "202607"). `empresa` (opcional)
- * filtra os colaboradores de uma única empresa (ex.: "Vertex", "Zenith").
- */
+export async function baixarCsv(tipo: string): Promise<void> {
+  const resp = await request(`/api/rateio/${encodeURIComponent(tipo)}/resultado.csv`);
+  await salvarArquivo(resp, `rateio_${tipo}.csv`);
+}
+
 /** Exportações do HISTÓRICO: leem o snapshot da execução, não o último
  *  processamento em memória — no histórico a fonte tem de ser a execução aberta. */
 /** Seções exportáveis do snapshot de uma execução (espelha SECOES_CSV no backend). */
@@ -1119,47 +1111,24 @@ export async function baixarPjCsvExecucao(id: number): Promise<void> {
   await salvarArquivo(resp, `pj_${id}.csv`);
 }
 
-/** Dispara o download de uma resposta como arquivo. */
-async function salvarArquivo(resp: Response, nome: string): Promise<void> {
-  const blob = await resp.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nome;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 /** CSV dos PJs (nome, CPF, operadora, valor): eles não entram no lançamento em
  *  folha — o desconto é cobrado na nota, em processo manual. */
 export async function baixarPjCsv(tipo: string): Promise<void> {
   const resp = await request(`/api/rateio/${encodeURIComponent(tipo)}/pj.csv`);
-  const blob = await resp.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pj_${tipo}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  await salvarArquivo(resp, `pj_${tipo}.csv`);
 }
 
+/**
+ * Baixa o TXT de redundância p/ importação manual no ERP (fallback ao envio via
+ * API). `competencia` no formato AAAAMM (ex.: "202607"). `empresa` (opcional)
+ * filtra os colaboradores de uma única empresa (ex.: "Vertex", "Zenith").
+ */
 export async function baixarTxt(tipo: string, competencia: string, empresa?: string): Promise<void> {
   let url = `/api/rateio/${encodeURIComponent(tipo)}/resultado.txt?competencia=${encodeURIComponent(competencia)}`;
   if (empresa) url += `&empresa=${encodeURIComponent(empresa)}`;
   const resp = await request(url);
-  const blob = await resp.blob();
-  const objectUrl = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = objectUrl;
-  a.download = empresa
-    ? `rateio_${tipo}_${empresa}_${competencia}.txt`
-    : `rateio_${tipo}_${competencia}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(objectUrl);
+  await salvarArquivo(
+    resp,
+    empresa ? `rateio_${tipo}_${empresa}_${competencia}.txt` : `rateio_${tipo}_${competencia}.txt`,
+  );
 }
