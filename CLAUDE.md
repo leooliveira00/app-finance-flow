@@ -37,8 +37,8 @@ O acesso em produção é por mesma origem: nginx serve o frontend e faz proxy d
 # Via docker-compose (recomendado; sobe API + Postgres juntos):
 docker compose up -d backend postgres  # API em 127.0.0.1:8000, docs em /docs
 # GATE do backend (rode após alterações):
-docker compose exec backend ruff check app
-docker compose exec backend mypy app
+docker compose exec backend ruff check app tests
+docker compose exec backend mypy app tests
 docker compose exec backend pytest
 ```
 O gate é `ruff` + `mypy` + `pytest`, configurados em [pyproject.toml](backend/pyproject.toml).
@@ -349,7 +349,10 @@ Pendente em dev: base de ESCRITA do Protheus em TESTE com
 ## Versionamento
 
 O repositório é versionado como **uma unidade** (backend e frontend sobem
-juntos) via **semantic-release**, rodando **localmente**; não há CI.
+juntos) via **semantic-release**, rodando **localmente**. O CI
+([.github/workflows/ci.yml](.github/workflows/ci.yml)) só roda o gate de
+qualidade (backend e frontend) em push e pull request; ele **não** publica
+release, por isso o `--no-ci` abaixo continua valendo.
 Configuração em [.releaserc.json](.releaserc.json); o `package.json` da raiz
 existe só para hospedar a versão e o ferramental (os serviços não ganham
 dependências com isso).

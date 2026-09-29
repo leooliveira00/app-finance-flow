@@ -4,8 +4,8 @@
 # declarar ferramenta, o backend fica sem nenhum gate automatizado, que era o
 # caso até aqui. `ruff` cobre lint e ordem de imports; `mypy` cobre tipos.
 #
-#   docker compose exec backend ruff check app
-#   docker compose exec backend mypy app
+#   docker compose exec backend ruff check app tests
+#   docker compose exec backend mypy app tests
 #   docker compose exec backend pytest
 #
 # Estes três comandos são o gate. Os testes com dados reais de amostra (marker

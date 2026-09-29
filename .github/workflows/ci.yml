@@ -1,0 +1,56 @@
+# Gate de qualidade: os mesmos comandos documentados no README/CLAUDE.md,
+# rodando em todo push e pull request. O release continua LOCAL
+# (`npm run release`, ver CLAUDE.md); este workflow não publica nada.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Um push novo na mesma branch cancela a execução anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (ruff, mypy, pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12" # mesma versão da imagem (backend/Dockerfile)
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: ruff check app tests
+      - run: mypy app tests
+      # Os testes `integration` dependem de amostras não versionadas e ficam de fora.
+      - run: pytest -rs
+
+  frontend:
+    name: Frontend (typecheck, lint, format, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20 # mesma versão da imagem (frontend/Dockerfile)
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build

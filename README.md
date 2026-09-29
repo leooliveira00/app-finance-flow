@@ -1,5 +1,7 @@
 # FinanceFlow
 
+[![CI](https://github.com/leooliveira00/app-finance-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/leooliveira00/app-finance-flow/actions/workflows/ci.yml)
+
 Aplicação web full stack para **automação de processos financeiros**: lançamento
 e processamento de contas, rateio de valores por centro de custo e integração
 com um ERP. Nasceu como um protótipo de UI e evoluiu para uma aplicação real,
@@ -107,11 +109,12 @@ pelo Docker Compose. Alterações em código Python exigem rebuild
 
 ### Verificações automatizadas
 
-O que existe precisa passar antes de qualquer entrega:
+O que existe precisa passar antes de qualquer entrega, e é o que o
+[CI](.github/workflows/ci.yml) roda em todo push e pull request:
 
 ```bash
-docker compose exec backend ruff check app   # lint
-docker compose exec backend mypy app         # tipos
+docker compose exec backend ruff check app tests   # lint
+docker compose exec backend mypy app tests         # tipos
 docker compose exec backend pytest           # testes (dados fictícios, sem rede)
 cd frontend && npm run typecheck             # tsc --noEmit
 cd frontend && npm run lint                  # ESLint
