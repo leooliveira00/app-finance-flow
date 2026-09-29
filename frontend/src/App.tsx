@@ -189,7 +189,6 @@ export default function App() {
       default:
         return (
           <DashboardScreen
-            userName={usuario?.nome || ''}
             onStartExecution={handleStartExecution}
             onViewHistory={(tipo) => {
               setHistoricoTipo(tipo);

@@ -27,11 +27,6 @@ function moeda(valor: string | number): string {
 }
 
 /** Soma valores que chegam como string do backend (Decimal serializado). */
-/** Chave do destino contábil: centro de custo + classe de valor. */
-function destinoChave(centroCusto: string, classeValor?: string): string {
-  return `${centroCusto}|${classeValor ?? ''}`;
-}
-
 function somar(valores: Array<string | number>): number {
   return valores.reduce<number>((acc, v) => acc + Number(v || 0), 0);
 }
@@ -509,8 +504,6 @@ export default function ClaroResultScreen({
   // contábil, não a leitura principal da prévia — aberto, empurrava os
   // boletos para fora da tela.
   const [ccAberto, setCcAberto] = useState(false);
-  // Destinos (centro de custo + classe) expandidos para mostrar as linhas.
-  const [destinosAbertos, setDestinosAbertos] = useState<Set<string>>(new Set());
   const [modalAberto, setModalAberto] = useState(false);
 
   // Nome amigável do centro de custo, do mesmo cadastro usado nas Configurações.
@@ -520,31 +513,6 @@ export default function ClaroResultScreen({
     api.listarCentrosCusto().then(setCentros).catch(() => setCentros([]));
   }, []);
   const nomePorCodigo = useMemo(() => new Map(centros.map((c) => [c.codigo, c.nome])), [centros]);
-
-  // Linhas de cada destino contábil (centro de custo + classe), reunidas de
-  // TODOS os boletos — é a mesma composição que virou item do título. Sai do
-  // snapshot, então funciona igual na prévia e na consulta do histórico.
-  const linhasPorDestino = useMemo(() => {
-    const mapa = new Map<string, Array<{ conta: string; linha: LinhaClaro }>>();
-    for (const boleto of r.boletos) {
-      for (const linha of boleto.linhas) {
-        if (!linha.completa) continue;
-        const chave = destinoChave(linha.centro_custo, linha.classe_valor);
-        if (!mapa.has(chave)) mapa.set(chave, []);
-        mapa.get(chave)!.push({ conta: boleto.conta || boleto.arquivo, linha });
-      }
-    }
-    for (const lista of mapa.values()) lista.sort((a, b) => Number(b.linha.valor) - Number(a.linha.valor));
-    return mapa;
-  }, [r.boletos]);
-
-  const alternarDestino = (chave: string) =>
-    setDestinosAbertos((atual) => {
-      const proximo = new Set(atual);
-      if (proximo.has(chave)) proximo.delete(chave);
-      else proximo.add(chave);
-      return proximo;
-    });
 
   const competencia = useMemo(
     () => competence || r.boletos[0]?.competencia || '',

@@ -59,7 +59,7 @@ export default function SetoresConfig({ addToast }: Props) {
   }, [rateios]);
 
   const abrir = (id: number) =>
-    setAbertos((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setAbertos((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   const toggle = async (area: AreaOrg, tipo: string) => {
     const novos = area.rateios.includes(tipo)

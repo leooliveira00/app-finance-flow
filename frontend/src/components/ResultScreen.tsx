@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, Fragment, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  FileDown, Check, AlertTriangle, Users, Banknote, ShieldAlert,
+  FileDown, Check, AlertTriangle, Users, Banknote,
   Info, CheckCircle2, XCircle, ChevronRight, ChevronDown, Building2, Briefcase, Loader2, MoreVertical, Search, Pencil,
 } from 'lucide-react';
 import * as api from '../api';

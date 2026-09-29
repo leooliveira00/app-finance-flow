@@ -74,7 +74,7 @@ function mapearCabecalho(campos: string[]): Array<CampoCsv | null> | null {
 function lerColagem(texto: string): LinhaTelefonicaIn[] {
   const semAspas = (campo: string) => campo.trim().replace(/^"(.*)"$/, '$1').trim();
   const registros = texto
-    .replace(/^﻿/, '')
+    .replace(/^\uFEFF/, '')
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean)

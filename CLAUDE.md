@@ -73,10 +73,13 @@ npm install
 npm run dev        # dev server em 0.0.0.0:3000 (proxy /api -> backend)
 npm run build      # build de produção (vite)
 npm run preview    # serve o dist/
-npm run lint       # SÓ checagem de tipos: `tsc --noEmit` (não há ESLint nem testes)
+npm run typecheck  # checagem de tipos: `tsc --noEmit`
+npm run lint       # ESLint (flat config em eslint.config.js): TS + regras do React
+npm run format     # Prettier (.prettierrc); `format:check` só verifica
 ```
-Rode `npm run lint` após alterações no frontend: é a única verificação
-automatizada disponível.
+Após alterações no frontend, rode `typecheck`, `lint` e `format:check`: são as
+verificações automatizadas do frontend (não há testes de UI). O ESLint cuida de
+correção; formatação é só do Prettier.
 
 ## Arquitetura do backend
 

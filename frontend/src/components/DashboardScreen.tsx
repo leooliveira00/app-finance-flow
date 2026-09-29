@@ -5,7 +5,6 @@ import { Modulo, ApiError } from '../api';
 import { Toast } from '../types';
 
 interface DashboardScreenProps {
-  userName: string;
   onStartExecution: (tipo: string) => void;
   /** Abre o histórico. Com `tipo`, já filtrado naquele rateio (botão do card). */
   onViewHistory: (tipo?: string) => void;
@@ -18,7 +17,7 @@ function dataCurta(iso?: string): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR');
 }
 
-export default function DashboardScreen({ userName, onStartExecution, onViewHistory, addToast }: DashboardScreenProps) {
+export default function DashboardScreen({ onStartExecution, onViewHistory, addToast }: DashboardScreenProps) {
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);

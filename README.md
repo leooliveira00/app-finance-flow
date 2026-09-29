@@ -48,7 +48,7 @@ precisa saber.
 | Banco de dados | PostgreSQL |
 | Autenticação | JWT (bcrypt para senhas) |
 | Infraestrutura | Docker Compose (nginx no frontend, uvicorn no backend) |
-| Qualidade | ruff + mypy (backend), tsc --noEmit (frontend) |
+| Qualidade | ruff + mypy (backend), tsc + ESLint + Prettier (frontend) |
 
 ## Arquitetura
 
@@ -112,7 +112,9 @@ Não há suíte de testes. O que existe precisa passar antes de qualquer entrega
 ```bash
 docker compose exec backend ruff check app   # lint
 docker compose exec backend mypy app         # tipos
-cd frontend && npm run lint                  # tsc --noEmit
+cd frontend && npm run typecheck             # tsc --noEmit
+cd frontend && npm run lint                  # ESLint
+cd frontend && npm run format:check          # Prettier
 ```
 
 ## Dados de demonstração
