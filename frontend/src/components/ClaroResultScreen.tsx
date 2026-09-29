@@ -1,11 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  AlertTriangle, ArrowLeft, Banknote, Building2, CalendarDays, CheckCircle2,
-  ChevronRight, FileDown, FileText, Loader2, Phone, Plus, Smartphone, X,
+  AlertTriangle,
+  ArrowLeft,
+  Banknote,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  FileDown,
+  FileText,
+  Loader2,
+  Phone,
+  Plus,
+  Smartphone,
+  X,
 } from 'lucide-react';
 import * as api from '../api';
-import { ApiError, BoletoClaro, LinhaClaro, RespostaProcessamento, comoResultadoClaro } from '../api';
+import {
+  ApiError,
+  BoletoClaro,
+  LinhaClaro,
+  RespostaProcessamento,
+  comoResultadoClaro,
+} from '../api';
 import { Toast } from '../types';
 
 interface Props {
@@ -37,10 +55,23 @@ function data(iso: string): string {
   return dia ? `${dia}/${mes}/${ano}` : iso;
 }
 
-function Cartao({ icone: Icone, rotulo, valor, destaque }: {
-  icone: typeof Phone; rotulo: string; valor: string; destaque?: 'alerta' | 'ok';
+function Cartao({
+  icone: Icone,
+  rotulo,
+  valor,
+  destaque,
+}: {
+  icone: typeof Phone;
+  rotulo: string;
+  valor: string;
+  destaque?: 'alerta' | 'ok';
 }) {
-  const cor = destaque === 'alerta' ? 'text-amber-600' : destaque === 'ok' ? 'text-emerald-600' : 'text-slate-900';
+  const cor =
+    destaque === 'alerta'
+      ? 'text-amber-600'
+      : destaque === 'ok'
+        ? 'text-emerald-600'
+        : 'text-slate-900';
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-3">
       <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
@@ -76,7 +107,9 @@ function LinhaDetalhe({ linha, nomeCentro, detalharExcedente }: LinhaDetalheProp
       >
         <td className="px-4 py-2">
           <div className="flex items-center gap-2">
-            <ChevronRight className={`h-3.5 w-3.5 text-slate-400 transition-transform ${aberto ? 'rotate-90' : ''}`} />
+            <ChevronRight
+              className={`h-3.5 w-3.5 text-slate-400 transition-transform ${aberto ? 'rotate-90' : ''}`}
+            />
             <span className="font-medium text-slate-800">{linha.numero_exibicao}</span>
           </div>
         </td>
@@ -100,7 +133,9 @@ function LinhaDetalhe({ linha, nomeCentro, detalharExcedente }: LinhaDetalheProp
             </span>
           )}
           {linha.cadastrada && !linha.ativa && (
-            <span className="ml-2 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">inativa</span>
+            <span className="ml-2 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+              inativa
+            </span>
           )}
           {linha.conta_divergente && (
             <span
@@ -113,13 +148,19 @@ function LinhaDetalhe({ linha, nomeCentro, detalharExcedente }: LinhaDetalheProp
         </td>
         {detalharExcedente && (
           <>
-            <td className="px-4 py-2 text-right tabular-nums text-slate-600">{moeda(linha.valor_mensalidades)}</td>
-            <td className={`px-4 py-2 text-right tabular-nums ${Number(linha.valor_uso) > 0 ? 'text-amber-700 font-semibold' : 'text-slate-400'}`}>
+            <td className="px-4 py-2 text-right tabular-nums text-slate-600">
+              {moeda(linha.valor_mensalidades)}
+            </td>
+            <td
+              className={`px-4 py-2 text-right tabular-nums ${Number(linha.valor_uso) > 0 ? 'text-amber-700 font-semibold' : 'text-slate-400'}`}
+            >
               {moeda(linha.valor_uso)}
             </td>
           </>
         )}
-        <td className="px-4 py-2 text-right tabular-nums font-semibold text-slate-900">{moeda(linha.valor)}</td>
+        <td className="px-4 py-2 text-right tabular-nums font-semibold text-slate-900">
+          {moeda(linha.valor)}
+        </td>
       </tr>
       {aberto && (
         <tr className="bg-slate-50/70">
@@ -135,14 +176,18 @@ function LinhaDetalhe({ linha, nomeCentro, detalharExcedente }: LinhaDetalheProp
                 <div key={i} className="flex items-baseline gap-3 text-xs">
                   <span className="text-slate-600">
                     {servico.categoria === 'uso' && (
-                      <span className="mr-1.5 text-[10px] font-bold uppercase text-amber-700">uso</span>
+                      <span className="mr-1.5 text-[10px] font-bold uppercase text-amber-700">
+                        uso
+                      </span>
                     )}
                     {servico.descricao}
                   </span>
                   {/* Pontilhado ligando descrição e valor: o olho não se perde
                       quando as descrições têm comprimentos muito diferentes. */}
                   <span className="flex-1 border-b border-dotted border-slate-300 translate-y-[-0.2rem]" />
-                  <span className={`tabular-nums shrink-0 ${Number(servico.valor) > 0 ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
+                  <span
+                    className={`tabular-nums shrink-0 ${Number(servico.valor) > 0 ? 'text-slate-800 font-medium' : 'text-slate-400'}`}
+                  >
                     {moeda(servico.valor)}
                   </span>
                 </div>
@@ -150,7 +195,9 @@ function LinhaDetalhe({ linha, nomeCentro, detalharExcedente }: LinhaDetalheProp
               <div className="flex items-baseline gap-3 text-xs pt-1.5 mt-0.5 border-t border-slate-200">
                 <span className="font-semibold text-slate-700">Total da linha</span>
                 <span className="flex-1" />
-                <span className="tabular-nums shrink-0 font-bold text-slate-900">{moeda(linha.valor)}</span>
+                <span className="tabular-nums shrink-0 font-bold text-slate-900">
+                  {moeda(linha.valor)}
+                </span>
               </div>
             </div>
           </td>
@@ -194,7 +241,9 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${aberto ? 'rotate-90' : ''}`} />
+              <ChevronRight
+                className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${aberto ? 'rotate-90' : ''}`}
+              />
               <FileText className="h-4 w-4 text-slate-400 shrink-0" />
               <h3 className="text-sm font-bold text-slate-900">Conta {boleto.conta || '—'}</h3>
               {/* Título do ERP no próprio boleto: é a ligação entre o documento e
@@ -222,15 +271,20 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
             <p className="text-xs text-slate-500 mt-1 ml-6 truncate">{boleto.arquivo}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Valor do título</p>
-            <p className="text-xl font-bold text-slate-900 tabular-nums">{moeda(boleto.valor_total)}</p>
+            <p className="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">
+              Valor do título
+            </p>
+            <p className="text-xl font-bold text-slate-900 tabular-nums">
+              {moeda(boleto.valor_total)}
+            </p>
           </div>
         </div>
 
         <div className="mt-4 ml-6 grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
           <p className="flex items-center gap-1.5 text-slate-600">
             <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-            Vencimento <span className="font-semibold text-slate-800">{data(boleto.vencimento)}</span>
+            Vencimento{' '}
+            <span className="font-semibold text-slate-800">{data(boleto.vencimento)}</span>
           </p>
           <p className="flex items-center gap-1.5 text-slate-600">
             <Smartphone className="h-3.5 w-3.5 text-slate-400" />
@@ -239,11 +293,14 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
           <p className="flex items-center gap-1.5 text-slate-600">
             <Building2 className="h-3.5 w-3.5 text-slate-400" />
             NFCOM <span className="font-semibold text-slate-800">{boleto.nfcom_numero || '—'}</span>
-            {boleto.nfcom_serie && <span className="text-slate-400">série {boleto.nfcom_serie}</span>}
+            {boleto.nfcom_serie && (
+              <span className="text-slate-400">série {boleto.nfcom_serie}</span>
+            )}
           </p>
           <p className="flex items-center gap-1.5 text-slate-600">
             <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-            Competência <span className="font-semibold text-slate-800">{boleto.competencia || '—'}</span>
+            Competência{' '}
+            <span className="font-semibold text-slate-800">{boleto.competencia || '—'}</span>
           </p>
         </div>
       </button>
@@ -277,7 +334,10 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-200">
-                <td className={`px-4 py-2 text-slate-900 ${temAjustes ? 'font-semibold' : 'font-bold'}`} colSpan={2}>
+                <td
+                  className={`px-4 py-2 text-slate-900 ${temAjustes ? 'font-semibold' : 'font-bold'}`}
+                  colSpan={2}
+                >
                   {temAjustes ? 'Soma das linhas' : 'Total'} · {boleto.qtd_linhas} linha(s)
                 </td>
                 <td />
@@ -291,7 +351,9 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
                     </td>
                   </>
                 )}
-                <td className={`px-4 py-2 text-right tabular-nums text-slate-900 ${temAjustes ? 'font-semibold' : 'font-bold'}`}>
+                <td
+                  className={`px-4 py-2 text-right tabular-nums text-slate-900 ${temAjustes ? 'font-semibold' : 'font-bold'}`}
+                >
                   {moeda(somar(boleto.linhas.map((l) => l.valor)))}
                 </td>
               </tr>
@@ -302,7 +364,9 @@ function CartaoBoleto({ boleto, nomeCentro, titulo }: CartaoBoletoProps) {
                 <tr key={i}>
                   <td className="px-4 py-1.5 text-slate-600" colSpan={colunas - 1}>
                     {ajuste.descricao}
-                    <span className="ml-2 text-[11px] text-slate-400">rateado entre os centros de custo</span>
+                    <span className="ml-2 text-[11px] text-slate-400">
+                      rateado entre os centros de custo
+                    </span>
                   </td>
                   <td className="px-4 py-1.5 text-right tabular-nums font-medium text-slate-700">
                     {moeda(ajuste.valor)}
@@ -342,7 +406,12 @@ interface Rascunho {
  * a que falta centro de custo ou classe de valor — nesse caso os campos já vêm
  * preenchidos com o que existe e só o que falta fica vazio.
  */
-function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
+function ModalPendencias({
+  pendencias,
+  onFechar,
+  onResolvido,
+  addToast,
+}: {
   pendencias: api.PendenciaClaro[];
   onFechar: () => void;
   onResolvido: () => Promise<void>;
@@ -406,9 +475,9 @@ function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
               Linhas sem destino contábil
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Estas linhas foram cobradas mas ainda não têm destino contábil completo. Centro de custo
-              e classe de valor são obrigatórios. O ERP recusa o lançamento sem eles. O que já existe
-              no cadastro vem preenchido, e a conta Claro sai do próprio boleto.
+              Estas linhas foram cobradas mas ainda não têm destino contábil completo. Centro de
+              custo e classe de valor são obrigatórios. O ERP recusa o lançamento sem eles. O que já
+              existe no cadastro vem preenchido, e a conta Claro sai do próprio boleto.
             </p>
           </div>
           <button onClick={onFechar} className="text-slate-400 hover:text-slate-600 shrink-0">
@@ -441,7 +510,9 @@ function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-slate-600">{moeda(p.valor)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-600">
+                    {moeda(p.valor)}
+                  </td>
                   <td className="px-3 py-2">
                     <input
                       value={rascunhos[p.numero]?.centro_custo ?? ''}
@@ -476,7 +547,10 @@ function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
             {preenchidas.length} de {pendencias.length} preenchida(s)
           </p>
           <div className="flex gap-2">
-            <button onClick={onFechar} className="text-xs font-semibold text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-100">
+            <button
+              onClick={onFechar}
+              className="text-xs font-semibold text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-100"
+            >
               Cancelar
             </button>
             <button
@@ -484,7 +558,11 @@ function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
               disabled={salvando || preenchidas.length === 0}
               className="text-xs font-semibold text-white bg-slate-900 px-4 py-2 rounded-xl hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
-              {salvando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              {salvando ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
               Cadastrar e reprocessar
             </button>
           </div>
@@ -495,7 +573,14 @@ function ModalPendencias({ pendencias, onFechar, onResolvido, addToast }: {
 }
 
 export default function ClaroResultScreen({
-  tipo, competence, resposta, onBackToFlow, onConfirmSend, onReprocessar, addToast, somenteLeitura,
+  tipo,
+  competence,
+  resposta,
+  onBackToFlow,
+  onConfirmSend,
+  onReprocessar,
+  addToast,
+  somenteLeitura,
   titulosPorConta,
 }: Props) {
   const r = comoResultadoClaro(resposta);
@@ -510,7 +595,10 @@ export default function ClaroResultScreen({
   // Falha silenciosa: sem o dicionário a prévia continua válida, só mostra o código.
   const [centros, setCentros] = useState<api.CentroCusto[]>([]);
   useEffect(() => {
-    api.listarCentrosCusto().then(setCentros).catch(() => setCentros([]));
+    api
+      .listarCentrosCusto()
+      .then(setCentros)
+      .catch(() => setCentros([]));
   }, []);
   const nomePorCodigo = useMemo(() => new Map(centros.map((c) => [c.codigo, c.nome])), [centros]);
 
@@ -540,7 +628,9 @@ export default function ClaroResultScreen({
             </button>
           )}
           <div>
-            <h1 className="text-lg font-bold text-slate-900">Telefonia Claro: prévia do lançamento</h1>
+            <h1 className="text-lg font-bold text-slate-900">
+              Telefonia Claro: prévia do lançamento
+            </h1>
             <p className="text-xs text-slate-500">
               Competência {competencia || '—'} · {r.totais.qtd_boletos} boleto(s) ={' '}
               {r.totais.qtd_boletos} Autorização(ões) de Entrega
@@ -554,7 +644,11 @@ export default function ClaroResultScreen({
               disabled={baixando}
               className="text-xs font-semibold text-slate-700 bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 inline-flex items-center gap-2"
             >
-              {baixando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              {baixando ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileDown className="h-3.5 w-3.5" />
+              )}
               Exportar CSV
             </button>
           </div>
@@ -568,7 +662,9 @@ export default function ClaroResultScreen({
         <Cartao
           icone={AlertTriangle}
           rotulo="Cadastro pendente"
-          valor={r.totais.qtd_incompletas === 0 ? 'nenhuma' : `${r.totais.qtd_incompletas} linha(s)`}
+          valor={
+            r.totais.qtd_incompletas === 0 ? 'nenhuma' : `${r.totais.qtd_incompletas} linha(s)`
+          }
           destaque={r.totais.qtd_incompletas === 0 ? 'ok' : 'alerta'}
         />
       </div>
@@ -614,7 +710,9 @@ export default function ClaroResultScreen({
             onClick={() => setCcAberto((v) => !v)}
             className="w-full p-4 px-5 flex items-center gap-3 text-left hover:bg-slate-50/60 transition-colors cursor-pointer"
           >
-            <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${ccAberto ? 'rotate-90' : ''}`} />
+            <ChevronRight
+              className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${ccAberto ? 'rotate-90' : ''}`}
+            />
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-slate-900">Consolidado por centro de custo</h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -646,22 +744,35 @@ export default function ClaroResultScreen({
                 {r.por_centro_custo.map((grupo) => (
                   /* Chave = centro de custo + classe: o mesmo CC aparece uma vez
                      por classe de valor, como nos itens do título. */
-                  <tr key={`${grupo.centro_custo}|${grupo.classe_valor ?? ''}`} className="border-t border-slate-100">
+                  <tr
+                    key={`${grupo.centro_custo}|${grupo.classe_valor ?? ''}`}
+                    className="border-t border-slate-100"
+                  >
                     <td className="px-5 py-2">
                       <span className="font-medium text-slate-800">{grupo.centro_custo}</span>
                       {nomePorCodigo.get(grupo.centro_custo) && (
-                        <span className="ml-2 text-slate-500">{nomePorCodigo.get(grupo.centro_custo)}</span>
+                        <span className="ml-2 text-slate-500">
+                          {nomePorCodigo.get(grupo.centro_custo)}
+                        </span>
                       )}
                     </td>
-                    <td className="px-5 py-2 tabular-nums text-slate-600">{grupo.classe_valor || '—'}</td>
-                    <td className="px-5 py-2 text-right tabular-nums text-slate-600">{grupo.qtd_linhas}</td>
-                    <td className="px-5 py-2 text-right tabular-nums font-semibold text-slate-900">{moeda(grupo.valor)}</td>
+                    <td className="px-5 py-2 tabular-nums text-slate-600">
+                      {grupo.classe_valor || '—'}
+                    </td>
+                    <td className="px-5 py-2 text-right tabular-nums text-slate-600">
+                      {grupo.qtd_linhas}
+                    </td>
+                    <td className="px-5 py-2 text-right tabular-nums font-semibold text-slate-900">
+                      {moeda(grupo.valor)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-slate-200">
-                  <td className="px-5 py-2 font-bold text-slate-900" colSpan={2}>Total rateado</td>
+                  <td className="px-5 py-2 font-bold text-slate-900" colSpan={2}>
+                    Total rateado
+                  </td>
                   <td className="px-5 py-2 text-right tabular-nums text-slate-600">
                     {somar(r.por_centro_custo.map((g) => g.qtd_linhas))}
                   </td>
@@ -710,23 +821,24 @@ export default function ClaroResultScreen({
       {/* Confirmação FLUTUANTE (padrão das outras telas de resultado). Um título
           por boleto: com linha cobrada sem cadastro o lançamento fica bloqueado,
           então o botão só habilita quando não há bloqueio. */}
-      {!somenteLeitura && createPortal(
-        <div className="fixed bottom-6 right-6 z-40">
-          <button
-            onClick={() => onConfirmSend()}
-            disabled={r.bloqueado || r.boletos.length === 0}
-            title={
-              r.bloqueado
-                ? 'Resolva as pendências de cadastro antes de lançar: há linha cobrada sem centro de custo ou classe de valor.'
-                : 'Registra a execução no histórico e gera uma Autorização de Entrega por boleto no ERP.'
-            }
-            className="flex items-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-xl shadow-emerald-950/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Confirmar e lançar {r.boletos.length === 1 ? 'boleto' : `${r.boletos.length} boletos`}
-          </button>
-        </div>,
-        document.body,
-      )}
+      {!somenteLeitura &&
+        createPortal(
+          <div className="fixed bottom-6 right-6 z-40">
+            <button
+              onClick={() => onConfirmSend()}
+              disabled={r.bloqueado || r.boletos.length === 0}
+              title={
+                r.bloqueado
+                  ? 'Resolva as pendências de cadastro antes de lançar: há linha cobrada sem centro de custo ou classe de valor.'
+                  : 'Registra a execução no histórico e gera uma Autorização de Entrega por boleto no ERP.'
+              }
+              className="flex items-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-xl shadow-emerald-950/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Confirmar e lançar {r.boletos.length === 1 ? 'boleto' : `${r.boletos.length} boletos`}
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

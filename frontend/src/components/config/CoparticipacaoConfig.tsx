@@ -30,20 +30,37 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
     api
       .getCadastroCoparticipacao()
       .then(setCadastro)
-      .catch((err) => addToast(err instanceof ApiError ? err.message : 'Falha ao carregar o cadastro.', 'error'))
+      .catch((err) =>
+        addToast(err instanceof ApiError ? err.message : 'Falha ao carregar o cadastro.', 'error'),
+      )
       .finally(() => setCarregando(false));
   }, [addToast]);
 
   const atualizarFaixa = (i: number, patch: Partial<CadastroCopartFaixa>) => {
-    setCadastro((c) => (c ? { ...c, faixas: c.faixas.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) } : c));
+    setCadastro((c) =>
+      c ? { ...c, faixas: c.faixas.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) } : c,
+    );
   };
   const atualizarValor = (i: number, tipo: keyof CadastroCopartFaixa['valores'], valor: string) => {
     setCadastro((c) =>
-      c ? { ...c, faixas: c.faixas.map((f, idx) => (idx === i ? { ...f, valores: { ...f.valores, [tipo]: valor } } : f)) } : c,
+      c
+        ? {
+            ...c,
+            faixas: c.faixas.map((f, idx) =>
+              idx === i ? { ...f, valores: { ...f.valores, [tipo]: valor } } : f,
+            ),
+          }
+        : c,
     );
   };
-  const adicionarFaixa = () => setCadastro((c) => (c ? { ...c, faixas: [...c.faixas, { ...FAIXA_VAZIA, valores: { ...FAIXA_VAZIA.valores } }] } : c));
-  const removerFaixa = (i: number) => setCadastro((c) => (c ? { ...c, faixas: c.faixas.filter((_, idx) => idx !== i) } : c));
+  const adicionarFaixa = () =>
+    setCadastro((c) =>
+      c
+        ? { ...c, faixas: [...c.faixas, { ...FAIXA_VAZIA, valores: { ...FAIXA_VAZIA.valores } }] }
+        : c,
+    );
+  const removerFaixa = (i: number) =>
+    setCadastro((c) => (c ? { ...c, faixas: c.faixas.filter((_, idx) => idx !== i) } : c));
 
   const salvar = async () => {
     if (!cadastro) return;
@@ -72,7 +89,9 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-slate-900">Coparticipação de plano de saúde</h2>
-          <p className="text-xs text-slate-500">Faixas salariais, valores por tipo de exame e teto do desconto.</p>
+          <p className="text-xs text-slate-500">
+            Faixas salariais, valores por tipo de exame e teto do desconto.
+          </p>
         </div>
         {admin && (
           <button
@@ -93,11 +112,19 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
             <Percent className="h-5 w-5 text-sky-600" />
           </div>
           <div className="flex-1">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Teto do desconto (% do salário)</label>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
+              Teto do desconto (% do salário)
+            </label>
             <input
-              type="number" step="0.01" min="0" max="100" disabled={!admin}
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              disabled={!admin}
               value={cadastro.teto_percentual}
-              onChange={(e) => setCadastro((c) => (c ? { ...c, teto_percentual: e.target.value } : c))}
+              onChange={(e) =>
+                setCadastro((c) => (c ? { ...c, teto_percentual: e.target.value } : c))
+              }
               className={`${inputCls} max-w-[140px]`}
             />
           </div>
@@ -107,14 +134,23 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
             <Briefcase className="h-5 w-5 text-sky-600" />
           </div>
           <div className="flex-1">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Salário padrão PJ (R$)</label>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
+              Salário padrão PJ (R$)
+            </label>
             <input
-              type="number" step="0.01" min="0" disabled={!admin}
+              type="number"
+              step="0.01"
+              min="0"
+              disabled={!admin}
               value={cadastro.salario_padrao_pj}
-              onChange={(e) => setCadastro((c) => (c ? { ...c, salario_padrao_pj: e.target.value } : c))}
+              onChange={(e) =>
+                setCadastro((c) => (c ? { ...c, salario_padrao_pj: e.target.value } : c))
+              }
               className={`${inputCls} max-w-[160px]`}
             />
-            <p className="text-[10px] text-slate-400 mt-1">Usado pelos colaboradores PJ para definir a faixa.</p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              Usado pelos colaboradores PJ para definir a faixa.
+            </p>
           </div>
         </div>
       </div>
@@ -122,9 +158,14 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
       {/* Faixas */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 px-5 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">Faixas salariais e valores por evento</h3>
+          <h3 className="text-sm font-bold text-slate-900">
+            Faixas salariais e valores por evento
+          </h3>
           {admin && (
-            <button onClick={adicionarFaixa} className="flex items-center gap-1 text-xs font-semibold text-sky-700 hover:text-sky-800 cursor-pointer">
+            <button
+              onClick={adicionarFaixa}
+              className="flex items-center gap-1 text-xs font-semibold text-sky-700 hover:text-sky-800 cursor-pointer"
+            >
               <Plus className="h-4 w-4" /> Adicionar faixa
             </button>
           )}
@@ -146,22 +187,52 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
               {cadastro.faixas.map((f, i) => (
                 <tr key={i} className="hover:bg-slate-50/40">
                   <td className="py-2 px-4 min-w-[120px]">
-                    <input disabled={!admin} value={f.nome} onChange={(e) => atualizarFaixa(i, { nome: e.target.value })} className={inputCls} />
+                    <input
+                      disabled={!admin}
+                      value={f.nome}
+                      onChange={(e) => atualizarFaixa(i, { nome: e.target.value })}
+                      className={inputCls}
+                    />
                   </td>
                   <td className="py-2 px-3 min-w-[110px]">
-                    <input disabled={!admin} type="number" step="0.01" value={f.salario_inicial} onChange={(e) => atualizarFaixa(i, { salario_inicial: e.target.value })} className={inputCls} />
+                    <input
+                      disabled={!admin}
+                      type="number"
+                      step="0.01"
+                      value={f.salario_inicial}
+                      onChange={(e) => atualizarFaixa(i, { salario_inicial: e.target.value })}
+                      className={inputCls}
+                    />
                   </td>
                   <td className="py-2 px-3 min-w-[110px]">
-                    <input disabled={!admin} type="number" step="0.01" value={f.salario_final} onChange={(e) => atualizarFaixa(i, { salario_final: e.target.value })} className={inputCls} />
+                    <input
+                      disabled={!admin}
+                      type="number"
+                      step="0.01"
+                      value={f.salario_final}
+                      onChange={(e) => atualizarFaixa(i, { salario_final: e.target.value })}
+                      className={inputCls}
+                    />
                   </td>
                   {TIPOS.map((t) => (
                     <td key={t} className="py-2 px-3 min-w-[90px]">
-                      <input disabled={!admin} type="number" step="0.01" value={f.valores[t]} onChange={(e) => atualizarValor(i, t, e.target.value)} className={inputCls} />
+                      <input
+                        disabled={!admin}
+                        type="number"
+                        step="0.01"
+                        value={f.valores[t]}
+                        onChange={(e) => atualizarValor(i, t, e.target.value)}
+                        className={inputCls}
+                      />
                     </td>
                   ))}
                   {admin && (
                     <td className="py-2 px-3">
-                      <button onClick={() => removerFaixa(i)} className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer" title="Remover faixa">
+                      <button
+                        onClick={() => removerFaixa(i)}
+                        className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer"
+                        title="Remover faixa"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
@@ -169,7 +240,11 @@ export default function CoparticipacaoConfig({ admin, addToast }: Props) {
                 </tr>
               ))}
               {cadastro.faixas.length === 0 && (
-                <tr><td colSpan={admin ? 7 : 6} className="py-8 text-center text-slate-400">Nenhuma faixa cadastrada.</td></tr>
+                <tr>
+                  <td colSpan={admin ? 7 : 6} className="py-8 text-center text-slate-400">
+                    Nenhuma faixa cadastrada.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

@@ -1,5 +1,12 @@
 import { ActiveTab } from '../types';
-import { LayoutDashboard, History, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  LayoutDashboard,
+  History,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import logoSymbol from '../img/logo-financeflow.png';
 
 interface SidebarProps {
@@ -12,7 +19,15 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, onLogout, onOpenPerfil, userName, collapsed, onToggleCollapse }: SidebarProps) {
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  onLogout,
+  onOpenPerfil,
+  userName,
+  collapsed,
+  onToggleCollapse,
+}: SidebarProps) {
   const menuItems = [
     { id: 'dashboard' as ActiveTab, label: 'Painel', icon: LayoutDashboard },
     { id: 'historico' as ActiveTab, label: 'Histórico', icon: History },
@@ -35,9 +50,15 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, onOpenPerfi
       }`}
     >
       {/* Brand Header */}
-      <div className={`flex flex-col items-center justify-center border-b border-brand-900 relative ${collapsed ? 'h-16 px-0 gap-0' : 'px-4 py-5 gap-3'}`}>
+      <div
+        className={`flex flex-col items-center justify-center border-b border-brand-900 relative ${collapsed ? 'h-16 px-0 gap-0' : 'px-4 py-5 gap-3'}`}
+      >
         {/* Logo (símbolo em azul, fundo transparente) direto sobre a sidebar */}
-        <img src={logoSymbol} alt="FinanceFlow" className={`object-contain ${collapsed ? 'h-[47px] w-auto' : 'h-[73px] w-auto'}`} />
+        <img
+          src={logoSymbol}
+          alt="FinanceFlow"
+          className={`object-contain ${collapsed ? 'h-[47px] w-auto' : 'h-[73px] w-auto'}`}
+        />
         {!collapsed && (
           <>
             {/* Fio separador e o nome em uma linha, com entreletra larga. O `pl`
@@ -57,14 +78,22 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, onOpenPerfi
           aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
           className="absolute -right-3 top-1/2 -translate-y-1/2 z-30 h-6 w-6 rounded-full bg-white text-brand-900 border border-brand-200 shadow-md flex items-center justify-center hover:bg-brand-50 hover:text-brand-700 transition-colors cursor-pointer"
         >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 py-6 space-y-1.5 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2.5' : 'px-4'}`}>
+      <nav
+        className={`flex-1 py-6 space-y-1.5 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2.5' : 'px-4'}`}
+      >
         {!collapsed && (
-          <span className="px-3 text-[10px] font-bold text-brand-400 uppercase tracking-wider block mb-3">Navegação</span>
+          <span className="px-3 text-[10px] font-bold text-brand-400 uppercase tracking-wider block mb-3">
+            Navegação
+          </span>
         )}
 
         {menuItems.map((item) => {
@@ -84,7 +113,9 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, onOpenPerfi
                   : 'text-brand-200 hover:bg-brand-900/40 hover:text-white'
               }`}
             >
-              <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-white' : 'text-brand-300'}`} />
+              <Icon
+                className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-white' : 'text-brand-300'}`}
+              />
               {!collapsed && item.label}
             </button>
           );

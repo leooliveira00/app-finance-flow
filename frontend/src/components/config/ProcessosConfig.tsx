@@ -11,7 +11,13 @@ interface Props {
 function dataHora(iso: string | null): string {
   if (!iso) return '';
   return new Date(iso)
-    .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
+    .toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     .replace(',', '');
 }
 
@@ -24,7 +30,8 @@ export default function ProcessosConfig({ addToast }: Props) {
     addToast(err instanceof ApiError ? err.message : fallback, 'error');
 
   useEffect(() => {
-    api.listarProcessos()
+    api
+      .listarProcessos()
       .then(setProcessos)
       .catch((e) => erro(e, 'Falha ao carregar os processos.'))
       .finally(() => setCarregando(false));
@@ -49,7 +56,11 @@ export default function ProcessosConfig({ addToast }: Props) {
   };
 
   if (carregando) {
-    return <div className="h-40 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+    return (
+      <div className="h-40 flex items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -58,8 +69,8 @@ export default function ProcessosConfig({ addToast }: Props) {
         <h2 className="text-lg font-bold text-slate-900">Processos</h2>
         <p className="text-xs text-slate-500">
           Disponibilidade de cada processo na ferramenta. O processo <strong>inativo</strong> sai do
-          painel e não aceita novas execuções. O histórico dele continua disponível para consulta, as
-          execuções já gravadas podem ser concluídas e os cadastros seguem acessíveis aqui, para
+          painel e não aceita novas execuções. O histórico dele continua disponível para consulta,
+          as execuções já gravadas podem ser concluídas e os cadastros seguem acessíveis aqui, para
           completar o que falta antes de reativá-lo.
         </p>
       </div>
@@ -68,7 +79,9 @@ export default function ProcessosConfig({ addToast }: Props) {
         <div className="p-3 px-5 border-b border-slate-100 flex items-center gap-2">
           <Workflow className="h-4 w-4 text-slate-500" />
           <h3 className="text-sm font-bold text-slate-900">Cadastrados</h3>
-          <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{processos.length}</span>
+          <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+            {processos.length}
+          </span>
         </div>
         <ul className="divide-y divide-slate-100">
           {processos.map((p) => (
@@ -77,7 +90,9 @@ export default function ProcessosConfig({ addToast }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-slate-800">{p.nome}</span>
                   {p.area && (
-                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{p.area}</span>
+                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {p.area}
+                    </span>
                   )}
                   {!p.ativo && (
                     <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
@@ -88,7 +103,8 @@ export default function ProcessosConfig({ addToast }: Props) {
                 <p className="text-xs text-slate-500 mt-0.5">{p.descricao}</p>
                 {p.atualizado_por && (
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {p.ativo ? 'Ativado' : 'Desativado'} por {p.atualizado_por} em {dataHora(p.atualizado_em)}
+                    {p.ativo ? 'Ativado' : 'Desativado'} por {p.atualizado_por} em{' '}
+                    {dataHora(p.atualizado_em)}
                   </p>
                 )}
               </div>
@@ -101,7 +117,11 @@ export default function ProcessosConfig({ addToast }: Props) {
                     : 'border-transparent bg-brand-900 text-white hover:bg-brand-950'
                 }`}
               >
-                {alterando === p.tipo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Power className="h-3.5 w-3.5" />}
+                {alterando === p.tipo ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Power className="h-3.5 w-3.5" />
+                )}
                 {p.ativo ? 'Desativar' : 'Ativar'}
               </button>
             </li>

@@ -17,7 +17,11 @@ function dataCurta(iso?: string): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR');
 }
 
-export default function DashboardScreen({ onStartExecution, onViewHistory, addToast }: DashboardScreenProps) {
+export default function DashboardScreen({
+  onStartExecution,
+  onViewHistory,
+  addToast,
+}: DashboardScreenProps) {
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -33,7 +37,8 @@ export default function DashboardScreen({ onStartExecution, onViewHistory, addTo
         if (mods.status === 'fulfilled') {
           setModulos(mods.value);
         } else {
-          const msg = mods.reason instanceof ApiError ? mods.reason.message : 'Falha ao carregar os rateios.';
+          const msg =
+            mods.reason instanceof ApiError ? mods.reason.message : 'Falha ao carregar os rateios.';
           setErro(msg);
           addToast(msg, 'error');
         }
@@ -59,7 +64,9 @@ export default function DashboardScreen({ onStartExecution, onViewHistory, addTo
         <div className="absolute top-0 right-0 w-80 h-80 bg-brand-800 rounded-full mix-blend-multiply filter blur-3xl opacity-25 translate-x-1/3 -translate-y-1/3" />
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight">Painel de rateios</h1>
-          <p className="mt-1 text-sm text-brand-200">Selecione um rateio da sua área para iniciar uma execução.</p>
+          <p className="mt-1 text-sm text-brand-200">
+            Selecione um rateio da sua área para iniciar uma execução.
+          </p>
         </div>
       </div>
 
@@ -122,13 +129,20 @@ export default function DashboardScreen({ onStartExecution, onViewHistory, addTo
                       </span>
                     )}
                   </div>
-                  <p title={modulo.descricao} className="text-xs text-slate-500 leading-relaxed mb-3 line-clamp-2">{modulo.descricao}</p>
+                  <p
+                    title={modulo.descricao}
+                    className="text-xs text-slate-500 leading-relaxed mb-3 line-clamp-2"
+                  >
+                    {modulo.descricao}
+                  </p>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0" />
                     {ultimaPorTipo[modulo.tipo] ? (
                       <span title={new Date(ultimaPorTipo[modulo.tipo]).toLocaleString('pt-BR')}>
                         Última execução:{' '}
-                        <strong className="font-semibold text-slate-600">{dataCurta(ultimaPorTipo[modulo.tipo])}</strong>
+                        <strong className="font-semibold text-slate-600">
+                          {dataCurta(ultimaPorTipo[modulo.tipo])}
+                        </strong>
                       </span>
                     ) : (
                       <span>Sem execuções gravadas</span>

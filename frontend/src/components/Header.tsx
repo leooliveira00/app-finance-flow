@@ -13,25 +13,31 @@ interface HeaderProps {
   rateioNome?: string;
 }
 
-export default function Header({ activeTab, viewState, onGoBackToDashboard, erpAmbiente, rateioNome }: HeaderProps) {
+export default function Header({
+  activeTab,
+  viewState,
+  onGoBackToDashboard,
+  erpAmbiente,
+  rateioNome,
+}: HeaderProps) {
   // Determine breadcrumb items based on state
   const getBreadcrumbs = () => {
     if (activeTab === 'historico') {
       return [
         { label: 'FinanceFlow', action: null },
-        { label: 'Histórico de execuções', action: null }
+        { label: 'Histórico de execuções', action: null },
       ];
     }
     if (activeTab === 'configuracoes') {
       return [
         { label: 'FinanceFlow', action: null },
-        { label: 'Configurações', action: null }
+        { label: 'Configurações', action: null },
       ];
     }
 
     // activeTab is 'dashboard'
     const base = [{ label: 'Painel', action: viewState !== 'list' ? onGoBackToDashboard : null }];
-    
+
     // O rateio em execução identifica a trilha; sem ele, "Nova execução" basta.
     const trilhaRateio = rateioNome
       ? [{ label: rateioNome, action: null }]
@@ -46,7 +52,7 @@ export default function Header({ activeTab, viewState, onGoBackToDashboard, erpA
 
     return [
       { label: 'FinanceFlow', action: null },
-      { label: 'Painel geral', action: null }
+      { label: 'Painel geral', action: null },
     ];
   };
 

@@ -30,7 +30,10 @@ const LIMITE_BUSCA = 8;
 function normalizar(texto: string): string {
   // \u0300-\u036f = diacríticos combinantes separados pelo NFD (escapes
   // explícitos: o caractere cru é invisível no editor e some em copy/paste).
-  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 /**
@@ -83,12 +86,16 @@ export default function Dropdown({
         className={`flex items-center justify-between gap-1.5 py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 cursor-pointer whitespace-nowrap ${className}`}
       >
         <span className="truncate">{atual?.label}</span>
-        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${aberto ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${aberto ? 'rotate-180' : ''}`}
+        />
       </button>
       {aberto && (
         <>
           <div className="fixed inset-0 z-10" onClick={fechar} />
-          <div className={`absolute left-0 top-11 z-20 ${larguraMenu} bg-white border border-slate-200 rounded-xl shadow-lg text-left overflow-hidden`}>
+          <div
+            className={`absolute left-0 top-11 z-20 ${larguraMenu} bg-white border border-slate-200 rounded-xl shadow-lg text-left overflow-hidden`}
+          >
             {mostrarBusca && (
               <div className="p-2 border-b border-slate-100">
                 <div className="relative">

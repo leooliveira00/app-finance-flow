@@ -1,11 +1,35 @@
 import { useEffect, useMemo, useState, Fragment, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  FileDown, Check, AlertTriangle, Users, Banknote,
-  Info, CheckCircle2, XCircle, ChevronRight, ChevronDown, Building2, Briefcase, Loader2, MoreVertical, Search, Pencil,
+  FileDown,
+  Check,
+  AlertTriangle,
+  Users,
+  Banknote,
+  Info,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
+  ChevronDown,
+  Building2,
+  Briefcase,
+  Loader2,
+  MoreVertical,
+  Search,
+  Pencil,
 } from 'lucide-react';
 import * as api from '../api';
-import { ApiError, RespostaProcessamento, Resultado, AgregadoResultado, ItemResultado, VidaResultado, DivergenciaResultado, CentroCusto, AjusteRateio } from '../api';
+import {
+  ApiError,
+  RespostaProcessamento,
+  Resultado,
+  AgregadoResultado,
+  ItemResultado,
+  VidaResultado,
+  DivergenciaResultado,
+  CentroCusto,
+  AjusteRateio,
+} from '../api';
 import { Toast } from '../types';
 import CpfCell from './CpfCell';
 
@@ -16,14 +40,30 @@ function recomputarAgregado(itens: ItemResultado[]): AgregadoResultado[] {
     const key = `${it.operadora}|${it.empresa}|${it.centro_custo}|${it.classe_valor}`;
     const cent = Math.round(Number(it.valor || 0) * 100);
     const g = map.get(key);
-    if (g) { g.base.num_colaboradores += 1; g.cent += cent; }
-    else map.set(key, { base: { operadora: it.operadora, empresa: it.empresa, centro_custo: it.centro_custo, classe_valor: it.classe_valor, num_colaboradores: 1, valor: '0' }, cent });
+    if (g) {
+      g.base.num_colaboradores += 1;
+      g.cent += cent;
+    } else
+      map.set(key, {
+        base: {
+          operadora: it.operadora,
+          empresa: it.empresa,
+          centro_custo: it.centro_custo,
+          classe_valor: it.classe_valor,
+          num_colaboradores: 1,
+          valor: '0',
+        },
+        cent,
+      });
   }
   return [...map.values()].map((g) => ({ ...g.base, valor: (g.cent / 100).toFixed(2) }));
 }
 
 /** Aplica realocações (índice do item -> novo CC/classe) e recomputa o agregado. */
-function aplicarAjustes(resultado: Resultado, ajustes: Map<number, { cc: string; classe: string }>): Resultado {
+function aplicarAjustes(
+  resultado: Resultado,
+  ajustes: Map<number, { cc: string; classe: string }>,
+): Resultado {
   if (ajustes.size === 0) return resultado;
   const itens = resultado.itens.map((it, i) => {
     const aj = ajustes.get(i);
@@ -60,14 +100,26 @@ function TabelaVidas({ vidas }: { vidas: VidaResultado[] }) {
           <tr key={j} className="border-b border-slate-100 last:border-0">
             <td className="py-1.5 pr-3">
               {v.titular ? (
-                <span className="text-[9px] font-bold text-brand-700 bg-brand-50 border border-brand-100 px-1 py-0.5 rounded mr-1.5 align-middle">TITULAR</span>
+                <span className="text-[9px] font-bold text-brand-700 bg-brand-50 border border-brand-100 px-1 py-0.5 rounded mr-1.5 align-middle">
+                  TITULAR
+                </span>
               ) : (
-                <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded mr-1.5 align-middle">Dependente</span>
+                <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded mr-1.5 align-middle">
+                  Dependente
+                </span>
               )}
               <span className="text-slate-700">{v.nome}</span>
             </td>
-            <td className="py-1.5 pr-3">{v.cpf ? <CpfCell cpf={v.cpf} className="text-slate-400" /> : <span className="text-slate-300">—</span>}</td>
-            <td className="py-1.5 text-right font-mono text-slate-600 whitespace-nowrap">{moeda(v.valor)}</td>
+            <td className="py-1.5 pr-3">
+              {v.cpf ? (
+                <CpfCell cpf={v.cpf} className="text-slate-400" />
+              ) : (
+                <span className="text-slate-300">—</span>
+              )}
+            </td>
+            <td className="py-1.5 text-right font-mono text-slate-600 whitespace-nowrap">
+              {moeda(v.valor)}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -85,7 +137,11 @@ const ROTULO_DIVERGENCIA: Record<string, string> = {
 
 /** Card colapsável. `defaultAberto` controla o estado inicial. */
 function Secao({
-  titulo, contador, defaultAberto = false, destaque = false, children,
+  titulo,
+  contador,
+  defaultAberto = false,
+  destaque = false,
+  children,
 }: {
   titulo: string;
   contador?: number;
@@ -95,16 +151,26 @@ function Secao({
 }) {
   const [aberto, setAberto] = useState(defaultAberto);
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${destaque ? 'border-brand-300 ring-1 ring-brand-100' : 'border-slate-200/80'}`}>
+    <div
+      className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${destaque ? 'border-brand-300 ring-1 ring-brand-100' : 'border-slate-200/80'}`}
+    >
       <div
         className="p-4 px-5 flex items-center justify-between gap-3 cursor-pointer select-none"
         onClick={() => setAberto((a) => !a)}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform shrink-0 ${aberto ? 'rotate-90' : ''}`} />
-          <h3 className={`text-sm font-bold truncate ${destaque ? 'text-brand-950' : 'text-slate-900'}`}>{titulo}</h3>
+          <ChevronRight
+            className={`h-4 w-4 text-slate-400 transition-transform shrink-0 ${aberto ? 'rotate-90' : ''}`}
+          />
+          <h3
+            className={`text-sm font-bold truncate ${destaque ? 'text-brand-950' : 'text-slate-900'}`}
+          >
+            {titulo}
+          </h3>
           {contador != null && (
-            <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full shrink-0">{contador}</span>
+            <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full shrink-0">
+              {contador}
+            </span>
           )}
         </div>
       </div>
@@ -138,7 +204,17 @@ const SECOES_EXPORT: Array<{
   },
 ];
 
-export default function ResultScreen({ tipo, competence, resposta, onBackToFlow, onConfirmSend, onReprocessar, addToast, somenteLeitura, execucaoId }: ResultScreenProps) {
+export default function ResultScreen({
+  tipo,
+  competence,
+  resposta,
+  onBackToFlow,
+  onConfirmSend,
+  onReprocessar,
+  addToast,
+  somenteLeitura,
+  execucaoId,
+}: ResultScreenProps) {
   const [baixando, setBaixando] = useState(false);
   const [menuExport, setMenuExport] = useState(false);
   const [ccAbertos, setCcAbertos] = useState<Record<string, boolean>>({});
@@ -151,7 +227,7 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   const [buscaCc, setBuscaCc] = useState('');
   const [salvandoPJ, setSalvandoPJ] = useState(false);
   const [menuAberto, setMenuAberto] = useState<string | null>(null);
-  const [filtroCc, setFiltroCc] = useState('');   // busca no card Rateio por Centro de Custo
+  const [filtroCc, setFiltroCc] = useState(''); // busca no card Rateio por Centro de Custo
   const [filtroDet, setFiltroDet] = useState(''); // busca no card Detalhamento por Colaborador
   // Titulares com o detalhamento de vidas expandido. Chave prefixada por quadro
   // (`cc-<idx>` / `det-<idx>`) para os dois quadros expandirem de forma independente.
@@ -159,31 +235,54 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   const toggleVidas = (chave: string) =>
     setVidasAbertas((s) => {
       const n = new Set(s);
-      if (n.has(chave)) n.delete(chave); else n.add(chave);
+      if (n.has(chave)) n.delete(chave);
+      else n.add(chave);
       return n;
     });
   // Ajuste manual (realocação de CC/classe por colaborador) — vale só nesta execução.
-  const [ajustesMap, setAjustesMap] = useState<Map<number, { cc: string; classe: string }>>(new Map());
+  const [ajustesMap, setAjustesMap] = useState<Map<number, { cc: string; classe: string }>>(
+    new Map(),
+  );
   const [reatribuindo, setReatribuindo] = useState<number | null>(null);
   const [buscaReCc, setBuscaReCc] = useState('');
 
   // Resultado EXIBIDO = base + ajustes (agregado recomputado). Preserva total por empresa.
-  const resultado = useMemo(() => aplicarAjustes(resultadoBase, ajustesMap), [resultadoBase, ajustesMap]);
+  const resultado = useMemo(
+    () => aplicarAjustes(resultadoBase, ajustesMap),
+    [resultadoBase, ajustesMap],
+  );
   // Trilha de auditoria (de/para), ignorando ajustes que não mudaram nada.
   const ajustesLista = useMemo<Array<AjusteRateio & { idx: number }>>(() => {
     const lista: Array<AjusteRateio & { idx: number }> = [];
     ajustesMap.forEach((aj, i) => {
       const it = resultadoBase.itens[i];
       if (!it || (it.centro_custo === aj.cc && it.classe_valor === aj.classe)) return;
-      lista.push({ idx: i, cpf: it.cpf, nome: it.nome, empresa: it.empresa, de_cc: it.centro_custo, de_classe: it.classe_valor, para_cc: aj.cc, para_classe: aj.classe, valor: it.valor });
+      lista.push({
+        idx: i,
+        cpf: it.cpf,
+        nome: it.nome,
+        empresa: it.empresa,
+        de_cc: it.centro_custo,
+        de_classe: it.classe_valor,
+        para_cc: aj.cc,
+        para_classe: aj.classe,
+        valor: it.valor,
+      });
     });
     return lista;
   }, [ajustesMap, resultadoBase]);
   const desfazerAjuste = (idx: number) =>
-    setAjustesMap((prev) => { const n = new Map(prev); n.delete(idx); return n; });
+    setAjustesMap((prev) => {
+      const n = new Map(prev);
+      n.delete(idx);
+      return n;
+    });
 
   useEffect(() => {
-    api.listarCentrosCusto().then(setCentros).catch(() => undefined);
+    api
+      .listarCentrosCusto()
+      .then(setCentros)
+      .catch(() => undefined);
   }, []);
   const nomePorCodigo = useMemo(() => {
     const m = new Map<string, string>();
@@ -196,7 +295,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   const centrosFiltrados = useMemo(() => {
     const q = buscaCc.trim().toLowerCase();
     const base = q
-      ? centros.filter((c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q))
+      ? centros.filter(
+          (c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q),
+        )
       : centros;
     return base.slice(0, 60); // limita a lista renderizada; refine a busca para ver mais
   }, [centros, buscaCc]);
@@ -204,7 +305,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   // Atribuição de PJ: só faz sentido quando temos CPF (Unimed) e há reprocessamento.
   const ehCpf = (v: string) => /^\d{11}$/.test((v || '').replace(/\D/g, ''));
   const podeAtribuirPJ = (d: DivergenciaResultado) =>
-    !!onReprocessar && (d.tipo === 'titular_nao_encontrado' || d.tipo === 'colaborador_pj') && ehCpf(d.referencia);
+    !!onReprocessar &&
+    (d.tipo === 'titular_nao_encontrado' || d.tipo === 'colaborador_pj') &&
+    ehCpf(d.referencia);
 
   const confirmarAtribuicao = async () => {
     if (!atribuindo || !ccSelecionado || !onReprocessar) return;
@@ -234,8 +337,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   );
 
   // Chave do agregado e agrupamento dos colaboradores para o detalhe expansível.
-  const chaveCc = (x: { operadora: string; empresa: string; centro_custo: string; classe_valor: string }) =>
-    `${x.operadora}|${x.empresa}|${x.centro_custo}|${x.classe_valor}`;
+  const chaveCc = (x: {
+    operadora: string;
+    empresa: string;
+    centro_custo: string;
+    classe_valor: string;
+  }) => `${x.operadora}|${x.empresa}|${x.centro_custo}|${x.classe_valor}`;
   const itensPorChave: Record<string, { item: ItemResultado; idx: number }[]> = {};
   resultado.itens.forEach((it, idx) => {
     (itensPorChave[chaveCc(it)] ??= []).push({ item: it, idx });
@@ -245,10 +352,11 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
   const agregadoFiltrado = useMemo(() => {
     const q = filtroCc.trim().toLowerCase();
     if (!q) return agregadoOrdenado;
-    return agregadoOrdenado.filter((a) =>
-      a.centro_custo.toLowerCase().includes(q) ||
-      nomeCc(a.centro_custo).toLowerCase().includes(q) ||
-      (a.empresa || '').toLowerCase().includes(q),
+    return agregadoOrdenado.filter(
+      (a) =>
+        a.centro_custo.toLowerCase().includes(q) ||
+        nomeCc(a.centro_custo).toLowerCase().includes(q) ||
+        (a.empresa || '').toLowerCase().includes(q),
     );
   }, [agregadoOrdenado, filtroCc, nomePorCodigo]); // eslint-disable-line react-hooks/exhaustive-deps
   const subtotalFiltrado = useMemo(
@@ -262,11 +370,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
     const comIdx = resultado.itens.map((item, idx) => ({ item, idx }));
     if (!q) return comIdx;
     const qd = q.replace(/\D/g, '');
-    return comIdx.filter(({ item: it }) =>
-      it.nome.toLowerCase().includes(q) ||
-      it.centro_custo.toLowerCase().includes(q) ||
-      nomeCc(it.centro_custo).toLowerCase().includes(q) ||
-      (!!qd && it.cpf.replace(/\D/g, '').includes(qd)),
+    return comIdx.filter(
+      ({ item: it }) =>
+        it.nome.toLowerCase().includes(q) ||
+        it.centro_custo.toLowerCase().includes(q) ||
+        nomeCc(it.centro_custo).toLowerCase().includes(q) ||
+        (!!qd && it.cpf.replace(/\D/g, '').includes(qd)),
     );
   }, [resultado.itens, filtroDet, nomePorCodigo]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -291,7 +400,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Resultado do processamento</h1>
-          <p className="text-xs text-slate-500">Competência: <strong>{competence}</strong></p>
+          <p className="text-xs text-slate-500">
+            Competência: <strong>{competence}</strong>
+          </p>
         </div>
         {/* Exportar vale também na consulta ao histórico: analisar um processo
             passado (ex.: 041) exigia abrir o detalhe e ler na tela. */}
@@ -312,7 +423,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             >
               <FileDown className="h-4 w-4 text-slate-500" />
               {baixando ? 'Gerando…' : 'Exportar'}
-              <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${menuExport ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-slate-400 transition-transform ${menuExport ? 'rotate-180' : ''}`}
+              />
             </button>
             {menuExport && (
               <>
@@ -321,19 +434,24 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                   <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Extrair detalhamento (CSV)
                   </div>
-                  {SECOES_EXPORT.filter((se) => execucaoId != null || !se.somenteHistorico).map((se) => (
-                    /* A descrição fica no hover (title): em duas linhas, cada item
+                  {SECOES_EXPORT.filter((se) => execucaoId != null || !se.somenteHistorico).map(
+                    (se) => (
+                      /* A descrição fica no hover (title): em duas linhas, cada item
                        ficava com o dobro da altura dos demais menus da ferramenta. */
-                    <button
-                      key={se.secao}
-                      onClick={() => { setMenuExport(false); handleBaixarCsv(se.secao); }}
-                      title={se.ajuda}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
-                    >
-                      <FileDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{se.rotulo}</span>
-                    </button>
-                  ))}
+                      <button
+                        key={se.secao}
+                        onClick={() => {
+                          setMenuExport(false);
+                          handleBaixarCsv(se.secao);
+                        }}
+                        title={se.ajuda}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <FileDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{se.rotulo}</span>
+                      </button>
+                    ),
+                  )}
                 </div>
               </>
             )}
@@ -360,7 +478,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             <Users className="h-6 w-6 text-brand-900" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Colaboradores Rateados</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Colaboradores Rateados
+            </span>
             <span className="text-2xl font-bold text-slate-900">{total_itens}</span>
           </div>
         </div>
@@ -369,8 +489,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             <Banknote className="h-6 w-6 text-brand-300" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Valor Final</span>
-            <span className="text-2xl font-black text-brand-950 font-mono">{moeda(valorFinal)}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Valor Final
+            </span>
+            <span className="text-2xl font-black text-brand-950 font-mono">
+              {moeda(valorFinal)}
+            </span>
             {totalEstornos !== 0 && (
               <span className="text-[10px] text-slate-500 block">
                 rateado {moeda(valorRateado)} + estornos {moeda(totalEstornos)}
@@ -383,9 +507,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             <AlertTriangle className="h-6 w-6 text-amber-500" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Divergências / Avisos</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Divergências / Avisos
+            </span>
             <span className="text-2xl font-bold text-slate-900">
-              {resultado.divergencias.length} <span className="text-base text-slate-400">/ {resultado.avisos.length}</span>
+              {resultado.divergencias.length}{' '}
+              <span className="text-base text-slate-400">/ {resultado.avisos.length}</span>
             </span>
           </div>
         </div>
@@ -399,7 +526,8 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
         destaque
       >
         <div className="px-5 py-2 bg-brand-50/40 text-[11px] text-brand-800 flex items-center gap-1.5">
-          <Building2 className="h-3.5 w-3.5" /> Valores consolidados por centro de custo. É a base do lançamento no ERP.
+          <Building2 className="h-3.5 w-3.5" /> Valores consolidados por centro de custo. É a base
+          do lançamento no ERP.
         </div>
         <div className="px-5 py-2.5 border-b border-slate-100 flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
@@ -412,7 +540,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             />
           </div>
           {filtroCc.trim() !== '' && (
-            <span className="text-[11px] text-slate-400 whitespace-nowrap">exibindo {agregadoFiltrado.length} de {agregadoOrdenado.length}</span>
+            <span className="text-[11px] text-slate-400 whitespace-nowrap">
+              exibindo {agregadoFiltrado.length} de {agregadoOrdenado.length}
+            </span>
           )}
         </div>
         <div className="overflow-x-auto">
@@ -441,9 +571,13 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                       <td className="py-3 px-5">{a.empresa || '—'}</td>
                       <td className="py-3 px-4 font-semibold text-slate-900">
                         <span className="inline-flex items-center gap-1.5">
-                          <ChevronRight className={`h-3.5 w-3.5 text-slate-400 transition-transform shrink-0 ${aberto ? 'rotate-90' : ''}`} />
+                          <ChevronRight
+                            className={`h-3.5 w-3.5 text-slate-400 transition-transform shrink-0 ${aberto ? 'rotate-90' : ''}`}
+                          />
                           <span>
-                            <span className="font-mono text-slate-400 font-normal">{a.centro_custo}</span>
+                            <span className="font-mono text-slate-400 font-normal">
+                              {a.centro_custo}
+                            </span>
                             <span className="mx-1.5 text-slate-300">·</span>
                             {nomeCc(a.centro_custo)}
                           </span>
@@ -451,14 +585,18 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                       </td>
                       <td className="py-3 px-4 font-mono text-slate-500">{a.classe_valor}</td>
                       <td className="py-3 px-4 text-right">{a.num_colaboradores}</td>
-                      <td className="py-3 px-5 text-right font-mono font-bold text-brand-950">{moeda(a.valor)}</td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-brand-950">
+                        {moeda(a.valor)}
+                      </td>
                     </tr>
                     {aberto && (
                       <tr className="bg-slate-50/40">
                         <td colSpan={5} className="px-5 py-0">
                           <div className="pl-6 py-2">
                             {filhos.length === 0 ? (
-                              <div className="text-[11px] text-slate-400 py-1">Sem colaboradores neste grupo.</div>
+                              <div className="text-[11px] text-slate-400 py-1">
+                                Sem colaboradores neste grupo.
+                              </div>
                             ) : (
                               <table className="w-full text-[11px]">
                                 <tbody>
@@ -469,63 +607,95 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                                     const chaveV = `cc-${idx}`;
                                     const vAberto = vidasAbertas.has(chaveV);
                                     return (
-                                    <Fragment key={idx}>
-                                    <tr className={`border-b border-slate-100 last:border-0 ${ajustesMap.has(idx) ? 'bg-amber-50/50' : ''}`}>
-                                      <td className="py-1.5 pr-3 text-slate-700 font-medium">
-                                        {temVidas ? (
-                                          <button onClick={() => toggleVidas(chaveV)} className="inline-flex items-center gap-1 hover:text-slate-900 cursor-pointer text-left" title="Ver vidas/registros cobrados">
-                                            <ChevronRight className={`h-3 w-3 text-slate-400 transition-transform shrink-0 ${vAberto ? 'rotate-90' : ''}`} />
-                                            <span>{f.nome}</span>
-                                          </button>
-                                        ) : (
-                                          <span className="inline-flex items-center gap-1">
-                                            <span className="w-3 shrink-0" aria-hidden />
-                                            <span>{f.nome}</span>
-                                          </span>
-                                        )}
-                                        {f.pj && (
-                                          <span className="ml-2 text-[9px] font-bold text-brand-800 bg-brand-50 border border-brand-100 px-1 py-0.5 rounded">PJ</span>
-                                        )}
-                                        {f.situacao && f.situacao.toUpperCase() === 'DEMITIDO' && (
-                                          <span className="ml-2 text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1 py-0.5 rounded">Demitido</span>
-                                        )}
-                                        {ajustesMap.has(idx) && (
-                                          <span className="ml-2 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">realocado</span>
-                                        )}
-                                      </td>
-                                      <td className="py-1.5 pr-3"><CpfCell cpf={f.cpf} className="text-slate-400" /></td>
-                                      <td className="py-1.5 pr-3 text-slate-400 whitespace-nowrap">{f.num_vidas} vida(s)</td>
-                                      <td className="py-1.5 text-right font-mono font-semibold text-slate-700">{moeda(f.valor)}</td>
-                                      {!somenteLeitura && (
-                                        <td className="py-1.5 pl-2 text-right w-8 relative">
-                                          <button
-                                            onClick={() => setMenuAberto((m) => (m === `det-${idx}` ? null : `det-${idx}`))}
-                                            className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 cursor-pointer"
-                                            title="Editar"
-                                          >
-                                            <Pencil className="h-3 w-3" />
-                                          </button>
-                                          {menuAberto === `det-${idx}` && (
-                                            <div className="absolute right-2 top-7 z-20 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 text-left">
+                                      <Fragment key={idx}>
+                                        <tr
+                                          className={`border-b border-slate-100 last:border-0 ${ajustesMap.has(idx) ? 'bg-amber-50/50' : ''}`}
+                                        >
+                                          <td className="py-1.5 pr-3 text-slate-700 font-medium">
+                                            {temVidas ? (
                                               <button
-                                                onClick={() => { setMenuAberto(null); setReatribuindo(idx); setBuscaReCc(''); }}
-                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                                onClick={() => toggleVidas(chaveV)}
+                                                className="inline-flex items-center gap-1 hover:text-slate-900 cursor-pointer text-left"
+                                                title="Ver vidas/registros cobrados"
                                               >
-                                                <Building2 className="h-3.5 w-3.5 text-slate-400" /> Reatribuir a outro CC
+                                                <ChevronRight
+                                                  className={`h-3 w-3 text-slate-400 transition-transform shrink-0 ${vAberto ? 'rotate-90' : ''}`}
+                                                />
+                                                <span>{f.nome}</span>
                                               </button>
-                                            </div>
+                                            ) : (
+                                              <span className="inline-flex items-center gap-1">
+                                                <span className="w-3 shrink-0" aria-hidden />
+                                                <span>{f.nome}</span>
+                                              </span>
+                                            )}
+                                            {f.pj && (
+                                              <span className="ml-2 text-[9px] font-bold text-brand-800 bg-brand-50 border border-brand-100 px-1 py-0.5 rounded">
+                                                PJ
+                                              </span>
+                                            )}
+                                            {f.situacao &&
+                                              f.situacao.toUpperCase() === 'DEMITIDO' && (
+                                                <span className="ml-2 text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1 py-0.5 rounded">
+                                                  Demitido
+                                                </span>
+                                              )}
+                                            {ajustesMap.has(idx) && (
+                                              <span className="ml-2 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">
+                                                realocado
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className="py-1.5 pr-3">
+                                            <CpfCell cpf={f.cpf} className="text-slate-400" />
+                                          </td>
+                                          <td className="py-1.5 pr-3 text-slate-400 whitespace-nowrap">
+                                            {f.num_vidas} vida(s)
+                                          </td>
+                                          <td className="py-1.5 text-right font-mono font-semibold text-slate-700">
+                                            {moeda(f.valor)}
+                                          </td>
+                                          {!somenteLeitura && (
+                                            <td className="py-1.5 pl-2 text-right w-8 relative">
+                                              <button
+                                                onClick={() =>
+                                                  setMenuAberto((m) =>
+                                                    m === `det-${idx}` ? null : `det-${idx}`,
+                                                  )
+                                                }
+                                                className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 cursor-pointer"
+                                                title="Editar"
+                                              >
+                                                <Pencil className="h-3 w-3" />
+                                              </button>
+                                              {menuAberto === `det-${idx}` && (
+                                                <div className="absolute right-2 top-7 z-20 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 text-left">
+                                                  <button
+                                                    onClick={() => {
+                                                      setMenuAberto(null);
+                                                      setReatribuindo(idx);
+                                                      setBuscaReCc('');
+                                                    }}
+                                                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                                  >
+                                                    <Building2 className="h-3.5 w-3.5 text-slate-400" />{' '}
+                                                    Reatribuir a outro CC
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </td>
                                           )}
-                                        </td>
-                                      )}
-                                    </tr>
-                                    {vAberto && f.vidas && (
-                                      <tr>
-                                        <td colSpan={somenteLeitura ? 4 : 5} className="py-0">
-                                          <div className="pl-6 pb-2"><TabelaVidas vidas={f.vidas} /></div>
-                                        </td>
-                                      </tr>
-                                    )}
-                                    </Fragment>
+                                        </tr>
+                                        {vAberto && f.vidas && (
+                                          <tr>
+                                            <td colSpan={somenteLeitura ? 4 : 5} className="py-0">
+                                              <div className="pl-6 pb-2">
+                                                <TabelaVidas vidas={f.vidas} />
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        )}
+                                      </Fragment>
                                     );
                                   })}
                                 </tbody>
@@ -539,9 +709,13 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                 );
               })}
               {agregadoFiltrado.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-slate-400">
-                  {filtroCc.trim() ? 'Nenhum centro de custo encontrado para a busca.' : 'Nada a ratear.'}
-                </td></tr>
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    {filtroCc.trim()
+                      ? 'Nenhum centro de custo encontrado para a busca.'
+                      : 'Nada a ratear.'}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -549,8 +723,15 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
         <div className="bg-slate-50 p-4 px-5 border-t border-slate-100 space-y-1">
           {filtroCc.trim() !== '' && (
             <div className="flex justify-between items-baseline text-xs text-slate-500 border-b border-slate-200 pb-1.5 mb-1.5">
-              <span>Exibindo {agregadoFiltrado.length} de {agregadoOrdenado.length} centros</span>
-              <span>Subtotal filtrado: <span className="font-mono font-semibold text-slate-700">{moeda(subtotalFiltrado)}</span></span>
+              <span>
+                Exibindo {agregadoFiltrado.length} de {agregadoOrdenado.length} centros
+              </span>
+              <span>
+                Subtotal filtrado:{' '}
+                <span className="font-mono font-semibold text-slate-700">
+                  {moeda(subtotalFiltrado)}
+                </span>
+              </span>
             </div>
           )}
           {totalEstornos !== 0 && (
@@ -567,16 +748,22 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
           )}
           <div className="flex justify-end gap-3 items-baseline">
             <span className="text-xs font-semibold text-slate-500">Total Final:</span>
-            <span className="text-sm font-black text-brand-950 font-mono w-32 text-right">{moeda(valorFinal)}</span>
+            <span className="text-sm font-black text-brand-950 font-mono w-32 text-right">
+              {moeda(valorFinal)}
+            </span>
           </div>
         </div>
       </Secao>
 
       {/* Estornos / Créditos — negativos que só subtraem no total (sem CC) */}
       {resultado.estornos.length > 0 && (
-        <Secao titulo="Estornos / Créditos (não rateados por CC)" contador={resultado.estornos.length}>
+        <Secao
+          titulo="Estornos / Créditos (não rateados por CC)"
+          contador={resultado.estornos.length}
+        >
           <div className="px-5 py-2 bg-slate-50 text-[11px] text-slate-500">
-            Valores negativos (ex.: exclusões retroativas). Não têm centro de custo; apenas subtraem do total final.
+            Valores negativos (ex.: exclusões retroativas). Não têm centro de custo; apenas subtraem
+            do total final.
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -594,7 +781,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                     <td className="py-3 px-5 capitalize">{e.operadora}</td>
                     <td className="py-3 px-4">{e.referencia}</td>
                     <td className="py-3 px-4 text-right">{e.num_vidas}</td>
-                    <td className="py-3 px-5 text-right font-mono font-bold text-rose-600">{moeda(e.valor)}</td>
+                    <td className="py-3 px-5 text-right font-mono font-bold text-rose-600">
+                      {moeda(e.valor)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -613,33 +802,71 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
               const valorFinal = Number(r.valor_base || 0);
               const diferenca = Number(r.diferenca || 0);
               const consistente = r.bate;
-              const mesma = (e: string | null) => (e || '').toUpperCase().trim() === (r.empresa || '').toUpperCase().trim();
-              const rateadoEmp = resultado.itens.filter((it) => mesma(it.empresa)).reduce((s, it) => s + Number(it.valor || 0), 0);
-              const estornoEmp = resultado.estornos.filter((e) => mesma(e.empresa)).reduce((s, e) => s + Number(e.valor || 0), 0);
+              const mesma = (e: string | null) =>
+                (e || '').toUpperCase().trim() === (r.empresa || '').toUpperCase().trim();
+              const rateadoEmp = resultado.itens
+                .filter((it) => mesma(it.empresa))
+                .reduce((s, it) => s + Number(it.valor || 0), 0);
+              const estornoEmp = resultado.estornos
+                .filter((e) => mesma(e.empresa))
+                .reduce((s, e) => s + Number(e.valor || 0), 0);
               const divsEmp = resultado.divergencias.filter((d) => mesma(d.empresa));
               const somaDiv = divsEmp.reduce((s, d) => s + Number(d.valor || 0), 0);
               const naoExplicado = diferenca - somaDiv;
               return (
-                <div key={i} className={`rounded-xl border p-4 ${consistente ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`}>
+                <div
+                  key={i}
+                  className={`rounded-xl border p-4 ${consistente ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`}
+                >
                   <div className="flex items-center gap-2 mb-3">
-                    {consistente ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-rose-500" />}
-                    <span className="text-sm font-bold text-slate-900">{r.empresa || '(empresa não identificada)'}</span>
-                    <span className="text-[10px] text-slate-400 capitalize">· {r.operadora} · {r.operadora === 'unimed' ? 'NF' : 'boleto'}</span>
-                    <span className={`ml-auto text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border ${consistente ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+                    {consistente ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-rose-500" />
+                    )}
+                    <span className="text-sm font-bold text-slate-900">
+                      {r.empresa || '(empresa não identificada)'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 capitalize">
+                      · {r.operadora} · {r.operadora === 'unimed' ? 'NF' : 'boleto'}
+                    </span>
+                    <span
+                      className={`ml-auto text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border ${consistente ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}
+                    >
                       {consistente ? 'Consistente' : 'Inconsistência'}
                     </span>
                   </div>
                   <div className="text-xs font-mono space-y-1 max-w-md">
-                    <div className="flex justify-between"><span className="text-slate-600">Documento (NF/boleto)</span><span className="font-semibold">{moeda(doc)}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-600">Valor final a lançar</span><span className="font-semibold">{moeda(valorFinal)}</span></div>
-                    <div className="flex justify-between text-[11px] text-slate-400"><span className="pl-3">rateado {moeda(rateadoEmp)} · estornos {moeda(estornoEmp)}</span><span /></div>
-                    <div className={`flex justify-between border-t border-slate-200 pt-1 font-bold ${consistente ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      <span>Diferença (documento − final)</span><span>{moeda(diferenca)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Documento (NF/boleto)</span>
+                      <span className="font-semibold">{moeda(doc)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Valor final a lançar</span>
+                      <span className="font-semibold">{moeda(valorFinal)}</span>
+                    </div>
+                    <div className="flex justify-between text-[11px] text-slate-400">
+                      <span className="pl-3">
+                        rateado {moeda(rateadoEmp)} · estornos {moeda(estornoEmp)}
+                      </span>
+                      <span />
+                    </div>
+                    <div
+                      className={`flex justify-between border-t border-slate-200 pt-1 font-bold ${consistente ? 'text-emerald-700' : 'text-rose-700'}`}
+                    >
+                      <span>Diferença (documento − final)</span>
+                      <span>{moeda(diferenca)}</span>
                     </div>
                     {!consistente && (
                       <div className="pt-1 pl-3 text-[11px] text-slate-500 space-y-0.5">
-                        <div className="flex justify-between"><span>├ Divergências não rateadas ({divsEmp.length})</span><span>{moeda(somaDiv)}</span></div>
-                        <div className="flex justify-between"><span>└ Não explicado (extração/arquivo)</span><span>{moeda(naoExplicado)}</span></div>
+                        <div className="flex justify-between">
+                          <span>├ Divergências não rateadas ({divsEmp.length})</span>
+                          <span>{moeda(somaDiv)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>└ Não explicado (extração/arquivo)</span>
+                          <span>{moeda(naoExplicado)}</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -660,7 +887,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
         <Secao titulo="Avisos" contador={resultado.avisos.length}>
           <div className="p-4 space-y-2">
             {resultado.avisos.map((a, i) => (
-              <div key={i} className="bg-amber-50 border border-amber-200/60 p-3 rounded-xl text-xs text-amber-900 font-medium leading-relaxed">{a}</div>
+              <div
+                key={i}
+                className="bg-amber-50 border border-amber-200/60 p-3 rounded-xl text-xs text-amber-900 font-medium leading-relaxed"
+              >
+                {a}
+              </div>
             ))}
           </div>
         </Secao>
@@ -671,18 +903,25 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
         <Secao titulo="Divergências" contador={resultado.divergencias.length}>
           <div className="p-4 flex flex-col gap-2">
             {resultado.divergencias.map((d, i) => (
-              <div key={i} className="border border-slate-200 p-3 rounded-xl flex items-start justify-between gap-3">
+              <div
+                key={i}
+                className="border border-slate-200 p-3 rounded-xl flex items-start justify-between gap-3"
+              >
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
                     {ROTULO_DIVERGENCIA[d.tipo] || d.tipo}
                   </span>
                   <div className="min-w-0">
-                    {d.nome && <span className="text-xs font-bold text-slate-900 block">{d.nome}</span>}
+                    {d.nome && (
+                      <span className="text-xs font-bold text-slate-900 block">{d.nome}</span>
+                    )}
                     <span className="text-xs text-slate-600 leading-relaxed">{d.descricao}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-mono font-semibold text-slate-500">{moeda(d.valor)}</span>
+                  <span className="text-xs font-mono font-semibold text-slate-500">
+                    {moeda(d.valor)}
+                  </span>
                   {podeAtribuirPJ(d) && (
                     <div className="relative">
                       <button
@@ -695,7 +934,12 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                       {menuAberto === `div-${i}` && (
                         <div className="absolute right-0 top-8 z-20 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 text-left">
                           <button
-                            onClick={() => { setMenuAberto(null); setAtribuindo(d); setCcSelecionado(''); setBuscaCc(''); }}
+                            onClick={() => {
+                              setMenuAberto(null);
+                              setAtribuindo(d);
+                              setCcSelecionado('');
+                              setBuscaCc('');
+                            }}
                             className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
                             title="Atribuir a PJ e escolher o centro de custo"
                           >
@@ -725,7 +969,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
             />
           </div>
           {filtroDet.trim() !== '' && (
-            <span className="text-[11px] text-slate-400 whitespace-nowrap">exibindo {itensFiltrados.length} de {resultado.itens.length}</span>
+            <span className="text-[11px] text-slate-400 whitespace-nowrap">
+              exibindo {itensFiltrados.length} de {resultado.itens.length}
+            </span>
           )}
         </div>
         <div className="overflow-x-auto">
@@ -747,52 +993,78 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                 const chaveV = `det-${idx}`;
                 const vAberto = vidasAbertas.has(chaveV);
                 return (
-                <Fragment key={`${item.cpf}-${item.operadora}-${idx}`}>
-                <tr className={`hover:bg-slate-50/50 font-medium ${ajustesMap.has(idx) ? 'bg-amber-50/40' : ''}`}>
-                  <td className="py-3 px-5 font-semibold text-slate-900">
-                    {temVidas ? (
-                      <button onClick={() => toggleVidas(chaveV)} className="inline-flex items-center gap-1.5 hover:text-brand-900 cursor-pointer text-left" title="Ver vidas/registros cobrados">
-                        <ChevronRight className={`h-3.5 w-3.5 text-slate-400 transition-transform shrink-0 ${vAberto ? 'rotate-90' : ''}`} />
-                        <span>{item.nome}</span>
-                      </button>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="w-3.5 shrink-0" aria-hidden />
-                        <span>{item.nome}</span>
-                      </span>
+                  <Fragment key={`${item.cpf}-${item.operadora}-${idx}`}>
+                    <tr
+                      className={`hover:bg-slate-50/50 font-medium ${ajustesMap.has(idx) ? 'bg-amber-50/40' : ''}`}
+                    >
+                      <td className="py-3 px-5 font-semibold text-slate-900">
+                        {temVidas ? (
+                          <button
+                            onClick={() => toggleVidas(chaveV)}
+                            className="inline-flex items-center gap-1.5 hover:text-brand-900 cursor-pointer text-left"
+                            title="Ver vidas/registros cobrados"
+                          >
+                            <ChevronRight
+                              className={`h-3.5 w-3.5 text-slate-400 transition-transform shrink-0 ${vAberto ? 'rotate-90' : ''}`}
+                            />
+                            <span>{item.nome}</span>
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-3.5 shrink-0" aria-hidden />
+                            <span>{item.nome}</span>
+                          </span>
+                        )}
+                        {item.pj && (
+                          <span className="ml-2 text-[10px] font-bold text-brand-800 bg-brand-50 border border-brand-100 px-1.5 py-0.5 rounded">
+                            PJ
+                          </span>
+                        )}
+                        {item.situacao && item.situacao.toUpperCase() === 'DEMITIDO' && (
+                          <span className="ml-2 text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                            Demitido
+                          </span>
+                        )}
+                        {ajustesMap.has(idx) && (
+                          <span className="ml-2 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                            realocado
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <CpfCell cpf={item.cpf} />
+                      </td>
+                      <td className="py-3 px-4">{item.empresa}</td>
+                      <td className="py-3 px-4">
+                        {nomeCc(item.centro_custo)}
+                        <span className="block text-[10px] font-mono text-slate-400">
+                          {item.centro_custo}
+                        </span>
+                      </td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-slate-900">
+                        {moeda(item.valor)}
+                      </td>
+                    </tr>
+                    {vAberto && item.vidas && (
+                      <tr className="bg-slate-50/40">
+                        <td colSpan={5} className="px-5 py-0">
+                          <div className="pl-6 py-2 max-w-2xl">
+                            <TabelaVidas vidas={item.vidas} />
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                    {item.pj && (
-                      <span className="ml-2 text-[10px] font-bold text-brand-800 bg-brand-50 border border-brand-100 px-1.5 py-0.5 rounded">PJ</span>
-                    )}
-                    {item.situacao && item.situacao.toUpperCase() === 'DEMITIDO' && (
-                      <span className="ml-2 text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Demitido</span>
-                    )}
-                    {ajustesMap.has(idx) && (
-                      <span className="ml-2 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">realocado</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4"><CpfCell cpf={item.cpf} /></td>
-                  <td className="py-3 px-4">{item.empresa}</td>
-                  <td className="py-3 px-4">
-                    {nomeCc(item.centro_custo)}
-                    <span className="block text-[10px] font-mono text-slate-400">{item.centro_custo}</span>
-                  </td>
-                  <td className="py-3 px-5 text-right font-mono font-bold text-slate-900">{moeda(item.valor)}</td>
-                </tr>
-                {vAberto && item.vidas && (
-                  <tr className="bg-slate-50/40">
-                    <td colSpan={5} className="px-5 py-0">
-                      <div className="pl-6 py-2 max-w-2xl"><TabelaVidas vidas={item.vidas} /></div>
-                    </td>
-                  </tr>
-                )}
-                </Fragment>
+                  </Fragment>
                 );
               })}
               {itensFiltrados.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-slate-400">
-                  {filtroDet.trim() ? 'Nenhum colaborador encontrado para a busca.' : 'Nenhum colaborador rateado (verifique as divergências).'}
-                </td></tr>
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                    {filtroDet.trim()
+                      ? 'Nenhum colaborador encontrado para a busca.'
+                      : 'Nenhum colaborador rateado (verifique as divergências).'}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -805,7 +1077,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
           <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
             <Pencil className="h-4 w-4 text-amber-500 shrink-0" />
             <span className="text-sm font-bold text-amber-900">Realocações manuais</span>
-            <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">{ajustesLista.length}</span>
+            <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+              {ajustesLista.length}
+            </span>
             <span className="ml-auto text-[11px] text-amber-700">total por empresa preservado</span>
           </div>
           <div className="divide-y divide-slate-100">
@@ -824,7 +1098,9 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
                     <span className="text-slate-600">{nomeCc(a.para_cc)}</span>
                   </div>
                 </div>
-                <span className="font-mono font-semibold text-slate-700 shrink-0">{moeda(a.valor)}</span>
+                <span className="font-mono font-semibold text-slate-700 shrink-0">
+                  {moeda(a.valor)}
+                </span>
                 {!somenteLeitura && (
                   <button
                     onClick={() => desfazerAjuste(a.idx)}
@@ -842,155 +1118,248 @@ export default function ResultScreen({ tipo, competence, resposta, onBackToFlow,
       {/* Confirmação FLUTUANTE no canto inferior direito: com os quadros de
           detalhamento abertos a página fica longa, e o botão no fim exigia rolar
           todos os registros para chegar à ação. */}
-      {!somenteLeitura && createPortal(
-        <div className="fixed bottom-6 right-6 z-40">
-          <button
-            onClick={() => onConfirmSend?.({ ...resultado, ajustes: ajustesLista.map(({ idx, ...a }) => a) })}
-            id="btn-confirm-protheus-trigger"
-            disabled={total_itens === 0}
-            title="Revise divergências e reconciliação antes de confirmar. Grava a execução no histórico e gera os títulos no ERP."
-            className="flex items-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-xl shadow-emerald-950/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Check className="h-4 w-4" />
-            Confirmar resultado
-          </button>
-        </div>,
-        document.body,
-      )}
+      {!somenteLeitura &&
+        createPortal(
+          <div className="fixed bottom-6 right-6 z-40">
+            <button
+              onClick={() =>
+                onConfirmSend?.({ ...resultado, ajustes: ajustesLista.map(({ idx, ...a }) => a) })
+              }
+              id="btn-confirm-protheus-trigger"
+              disabled={total_itens === 0}
+              title="Revise divergências e reconciliação antes de confirmar. Grava a execução no histórico e gera os títulos no ERP."
+              className="flex items-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-xl shadow-emerald-950/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Check className="h-4 w-4" />
+              Confirmar resultado
+            </button>
+          </div>,
+          document.body,
+        )}
 
       {/* Fecha o menu ao clicar fora */}
       {menuAberto && <div className="fixed inset-0 z-10" onClick={() => setMenuAberto(null)} />}
 
       {/* Modal: atribuir divergência a PJ + escolher centro de custo */}
-      {atribuindo && createPortal(
-        <div className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4" onClick={() => setAtribuindo(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                <Briefcase className="h-5 w-5 text-brand-900" />
+      {atribuindo &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
+            onClick={() => setAtribuindo(null)}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
+                  <Briefcase className="h-5 w-5 text-brand-900" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-slate-900">Atribuir a PJ</h3>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    <strong className="text-slate-700">
+                      {atribuindo.nome || atribuindo.referencia}
+                    </strong>{' '}
+                    será cadastrado como PJ e rateado ao centro de custo escolhido
+                    {atribuindo.empresa ? (
+                      <>
+                        {' '}
+                        (empresa <strong>{atribuindo.empresa}</strong>)
+                      </>
+                    ) : null}
+                    . Passa a valer também nas próximas execuções.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-sm font-bold text-slate-900">Atribuir a PJ</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  <strong className="text-slate-700">{atribuindo.nome || atribuindo.referencia}</strong> será cadastrado como PJ e rateado ao centro de custo escolhido
-                  {atribuindo.empresa ? <> (empresa <strong>{atribuindo.empresa}</strong>)</> : null}. Passa a valer também nas próximas execuções.
-                </p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Centro de custo</label>
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  autoFocus
-                  value={buscaCc}
-                  onChange={(e) => setBuscaCc(e.target.value)}
-                  placeholder="Buscar por código ou nome…"
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                />
-              </div>
-              <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
-                {centrosFiltrados.map((c) => {
-                  const sel = c.codigo === ccSelecionado;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => setCcSelecionado(c.codigo)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-left cursor-pointer transition-colors ${sel ? 'bg-brand-50' : 'hover:bg-slate-50'}`}
-                    >
-                      <span className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${sel ? 'bg-brand-900 border-brand-900' : 'border-slate-300'}`}>
-                        {sel && <Check className="h-2.5 w-2.5 text-white" />}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm text-slate-800 truncate">{c.nome || '—'}</span>
-                        <span className="block text-[10px] font-mono text-slate-400">{c.codigo}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-                {centros.length === 0 && (
-                  <p className="text-[11px] text-amber-600 p-3">Nenhum centro de custo cadastrado. Cadastre em Configurações ▸ Centros de custo.</p>
+              <div className="mt-4">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
+                  Centro de custo
+                </label>
+                <div className="relative">
+                  <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    autoFocus
+                    value={buscaCc}
+                    onChange={(e) => setBuscaCc(e.target.value)}
+                    placeholder="Buscar por código ou nome…"
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  />
+                </div>
+                <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
+                  {centrosFiltrados.map((c) => {
+                    const sel = c.codigo === ccSelecionado;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => setCcSelecionado(c.codigo)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-left cursor-pointer transition-colors ${sel ? 'bg-brand-50' : 'hover:bg-slate-50'}`}
+                      >
+                        <span
+                          className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${sel ? 'bg-brand-900 border-brand-900' : 'border-slate-300'}`}
+                        >
+                          {sel && <Check className="h-2.5 w-2.5 text-white" />}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm text-slate-800 truncate">
+                            {c.nome || '—'}
+                          </span>
+                          <span className="block text-[10px] font-mono text-slate-400">
+                            {c.codigo}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {centros.length === 0 && (
+                    <p className="text-[11px] text-amber-600 p-3">
+                      Nenhum centro de custo cadastrado. Cadastre em Configurações ▸ Centros de
+                      custo.
+                    </p>
+                  )}
+                  {centros.length > 0 && centrosFiltrados.length === 0 && (
+                    <p className="text-xs text-slate-400 p-3 text-center">
+                      Nenhum centro de custo encontrado.
+                    </p>
+                  )}
+                </div>
+                {buscaCc.trim() === '' && centros.length > centrosFiltrados.length && (
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Mostrando {centrosFiltrados.length} de {centros.length}. Digite para refinar.
+                  </p>
                 )}
-                {centros.length > 0 && centrosFiltrados.length === 0 && (
-                  <p className="text-xs text-slate-400 p-3 text-center">Nenhum centro de custo encontrado.</p>
-                )}
               </div>
-              {buscaCc.trim() === '' && centros.length > centrosFiltrados.length && (
-                <p className="text-[10px] text-slate-400 mt-1">Mostrando {centrosFiltrados.length} de {centros.length}. Digite para refinar.</p>
-              )}
+              <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                  onClick={() => setAtribuindo(null)}
+                  className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmarAtribuicao}
+                  disabled={!ccSelecionado}
+                  className="py-2 px-4 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50"
+                >
+                  Atribuir e reprocessar
+                </button>
+              </div>
             </div>
-            <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <button onClick={() => setAtribuindo(null)} className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer">
-                Cancelar
-              </button>
-              <button onClick={confirmarAtribuicao} disabled={!ccSelecionado} className="py-2 px-4 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50">
-                Atribuir e reprocessar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
+          </div>,
+          document.body,
+        )}
 
       {/* Overlay de reprocessamento */}
-      {salvandoPJ && createPortal(
-        <div className="fixed inset-0 z-40 bg-slate-900/30 flex items-center justify-center">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-4 flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-brand-900" />
-            <span className="text-sm font-semibold text-slate-700">Reprocessando…</span>
-          </div>
-        </div>,
-        document.body,
-      )}
+      {salvandoPJ &&
+        createPortal(
+          <div className="fixed inset-0 z-40 bg-slate-900/30 flex items-center justify-center">
+            <div className="bg-white rounded-2xl shadow-xl px-6 py-4 flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-brand-900" />
+              <span className="text-sm font-semibold text-slate-700">Reprocessando…</span>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* Modal: reatribuir um colaborador a outro centro de custo */}
-      {reatribuindo !== null && resultadoBase.itens[reatribuindo] && createPortal(
-        (() => {
-          const item = resultadoBase.itens[reatribuindo];
-          const q = buscaReCc.trim().toLowerCase();
-          const lista = (q ? centros.filter((c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q)) : centros).slice(0, 60);
-          const escolher = (codigo: string) => {
-            setAjustesMap((prev) => { const n = new Map(prev); n.set(reatribuindo, { cc: codigo, classe: item.classe_valor }); return n; });
-            setReatribuindo(null);
-          };
-          return (
-            <div className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4" onClick={() => setReatribuindo(null)}>
-              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-brand-900" />
+      {reatribuindo !== null &&
+        resultadoBase.itens[reatribuindo] &&
+        createPortal(
+          (() => {
+            const item = resultadoBase.itens[reatribuindo];
+            const q = buscaReCc.trim().toLowerCase();
+            const lista = (
+              q
+                ? centros.filter(
+                    (c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q),
+                  )
+                : centros
+            ).slice(0, 60);
+            const escolher = (codigo: string) => {
+              setAjustesMap((prev) => {
+                const n = new Map(prev);
+                n.set(reatribuindo, { cc: codigo, classe: item.classe_valor });
+                return n;
+              });
+              setReatribuindo(null);
+            };
+            return (
+              <div
+                className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
+                onClick={() => setReatribuindo(null)}
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
+                      <Building2 className="h-5 w-5 text-brand-900" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Reatribuir centro de custo
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        <strong className="text-slate-700">{item.nome}</strong> · {item.empresa} ·{' '}
+                        {moeda(item.valor)}. Atual: <strong>{nomeCc(item.centro_custo)}</strong> (
+                        {item.centro_custo}). O valor migra para o CC escolhido; o total da empresa
+                        não muda.
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-slate-900">Reatribuir centro de custo</h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      <strong className="text-slate-700">{item.nome}</strong> · {item.empresa} · {moeda(item.valor)}. Atual: <strong>{nomeCc(item.centro_custo)}</strong> ({item.centro_custo}). O valor migra para o CC escolhido; o total da empresa não muda.
-                    </p>
+                  <div className="mt-4">
+                    <div className="relative">
+                      <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        autoFocus
+                        value={buscaReCc}
+                        onChange={(e) => setBuscaReCc(e.target.value)}
+                        placeholder="Buscar por código ou nome…"
+                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                      />
+                    </div>
+                    <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
+                      {lista.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => escolher(c.codigo)}
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left cursor-pointer hover:bg-slate-50 ${c.codigo === item.centro_custo ? 'bg-slate-50' : ''}`}
+                        >
+                          <span className="min-w-0">
+                            <span className="block text-sm text-slate-800 truncate">
+                              {c.nome || '—'}
+                            </span>
+                            <span className="block text-[10px] font-mono text-slate-400">
+                              {c.codigo}
+                            </span>
+                          </span>
+                        </button>
+                      ))}
+                      {centros.length === 0 && (
+                        <p className="text-[11px] text-amber-600 p-3">
+                          Nenhum centro de custo cadastrado.
+                        </p>
+                      )}
+                      {centros.length > 0 && lista.length === 0 && (
+                        <p className="text-xs text-slate-400 p-3 text-center">Nenhum encontrado.</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4">
-                  <div className="relative">
-                    <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input autoFocus value={buscaReCc} onChange={(e) => setBuscaReCc(e.target.value)} placeholder="Buscar por código ou nome…" className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200" />
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => setReatribuindo(null)}
+                      className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
                   </div>
-                  <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
-                    {lista.map((c) => (
-                      <button key={c.id} onClick={() => escolher(c.codigo)} className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left cursor-pointer hover:bg-slate-50 ${c.codigo === item.centro_custo ? 'bg-slate-50' : ''}`}>
-                        <span className="min-w-0"><span className="block text-sm text-slate-800 truncate">{c.nome || '—'}</span><span className="block text-[10px] font-mono text-slate-400">{c.codigo}</span></span>
-                      </button>
-                    ))}
-                    {centros.length === 0 && <p className="text-[11px] text-amber-600 p-3">Nenhum centro de custo cadastrado.</p>}
-                    {centros.length > 0 && lista.length === 0 && <p className="text-xs text-slate-400 p-3 text-center">Nenhum encontrado.</p>}
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button onClick={() => setReatribuindo(null)} className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer">Cancelar</button>
                 </div>
               </div>
-            </div>
-          );
-        })(),
-        document.body,
-      )}
+            );
+          })(),
+          document.body,
+        )}
     </div>
   );
 }

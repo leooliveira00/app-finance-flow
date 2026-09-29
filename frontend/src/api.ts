@@ -46,7 +46,13 @@ export const NOME_RATEIO: Record<string, string> = {
   'pagamento-claro': 'Telefonia Claro',
 };
 export function nomeRateio(tipo: string): string {
-  return NOME_RATEIO[tipo] ?? tipo.split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  return (
+    NOME_RATEIO[tipo] ??
+    tipo
+      .split('-')
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(' ')
+  );
 }
 
 /** Rateios que lançam no ERP — espelha `lanca_no_erp` do backend. Fonte única no
@@ -261,8 +267,12 @@ function ehObjeto(x: unknown): x is Record<string, unknown> {
 }
 
 export function ehResultadoCopart(x: unknown): x is ResultadoCopart {
-  return ehObjeto(x) && Array.isArray(x.itens) && Array.isArray(x.divergencias)
-    && 'total_descontado' in x;
+  return (
+    ehObjeto(x) &&
+    Array.isArray(x.itens) &&
+    Array.isArray(x.divergencias) &&
+    'total_descontado' in x
+  );
 }
 
 /** Acessa o resultado da coparticipação a partir da resposta genérica. */
@@ -544,7 +554,9 @@ export async function getCadastroCoparticipacao(): Promise<CadastroCopart> {
   return resp.json();
 }
 
-export async function salvarCadastroCoparticipacao(cadastro: CadastroCopart): Promise<CadastroCopart> {
+export async function salvarCadastroCoparticipacao(
+  cadastro: CadastroCopart,
+): Promise<CadastroCopart> {
   const resp = await request('/api/cadastro/coparticipacao', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -600,7 +612,11 @@ export async function listarCentrosCusto(): Promise<CentroCusto[]> {
   return resp.json();
 }
 
-export async function criarCentroCusto(codigo: string, nome: string, empresa = ''): Promise<CentroCusto> {
+export async function criarCentroCusto(
+  codigo: string,
+  nome: string,
+  empresa = '',
+): Promise<CentroCusto> {
   const resp = await request('/api/cadastro/centros-custo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -609,7 +625,12 @@ export async function criarCentroCusto(codigo: string, nome: string, empresa = '
   return resp.json();
 }
 
-export async function atualizarCentroCusto(id: number, codigo: string, nome: string, empresa = ''): Promise<CentroCusto> {
+export async function atualizarCentroCusto(
+  id: number,
+  codigo: string,
+  nome: string,
+  empresa = '',
+): Promise<CentroCusto> {
   const resp = await request(`/api/cadastro/centros-custo/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -650,7 +671,9 @@ export async function getParametrosTelefonia(): Promise<ParametrosTelefonia> {
   return resp.json();
 }
 
-export async function salvarParametrosTelefonia(params: ParametrosTelefonia): Promise<ParametrosTelefonia> {
+export async function salvarParametrosTelefonia(
+  params: ParametrosTelefonia,
+): Promise<ParametrosTelefonia> {
   const resp = await request('/api/cadastro/linhas-telefonicas/parametros', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -673,7 +696,10 @@ export async function criarLinhaTelefonica(linha: LinhaTelefonicaIn): Promise<Li
   return resp.json();
 }
 
-export async function atualizarLinhaTelefonica(id: number, linha: LinhaTelefonicaIn): Promise<LinhaTelefonica> {
+export async function atualizarLinhaTelefonica(
+  id: number,
+  linha: LinhaTelefonicaIn,
+): Promise<LinhaTelefonica> {
   const resp = await request(`/api/cadastro/linhas-telefonicas/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -704,7 +730,7 @@ export interface Empresa {
   nome: string;
   rest: string;
   cnpj: string;
-  rotina_erp: string;      // "ae" | "pre_nota"
+  rotina_erp: string; // "ae" | "pre_nota"
   prenota_produto: string;
   prenota_filial: string;
 }
@@ -929,7 +955,11 @@ export async function notificarFiscal(id: number): Promise<NotificacaoResposta> 
   return resp.json();
 }
 
-export async function baixarDocumentoExecucao(execId: number, docId: number, nome: string): Promise<void> {
+export async function baixarDocumentoExecucao(
+  execId: number,
+  docId: number,
+  nome: string,
+): Promise<void> {
   const resp = await request(`/api/execucoes/${execId}/documentos/${docId}`);
   await salvarArquivo(resp, nome);
 }
@@ -1030,7 +1060,9 @@ export async function listarAreas(): Promise<AreaOrg[]> {
 }
 
 export async function criarArea(
-  nome: string, rateios: string[], emailsCopia = '',
+  nome: string,
+  rateios: string[],
+  emailsCopia = '',
 ): Promise<AreaOrg> {
   const resp = await request('/api/organizacao/areas', {
     method: 'POST',
@@ -1041,7 +1073,10 @@ export async function criarArea(
 }
 
 export async function atualizarArea(
-  id: number, nome: string, rateios: string[], emailsCopia = '',
+  id: number,
+  nome: string,
+  rateios: string[],
+  emailsCopia = '',
 ): Promise<AreaOrg> {
   const resp = await request(`/api/organizacao/areas/${id}`, {
     method: 'PUT',
@@ -1070,7 +1105,8 @@ export async function obterConfigNotificacao(): Promise<ConfigNotificacao> {
   return resp.json();
 }
 export async function salvarConfigNotificacao(
-  fiscalEmails: string, copiaPermanente: string,
+  fiscalEmails: string,
+  copiaPermanente: string,
 ): Promise<ConfigNotificacao> {
   const resp = await request('/api/notificacoes', {
     method: 'PUT',
@@ -1088,10 +1124,7 @@ export async function removerArea(id: number): Promise<void> {
   await request(`/api/organizacao/areas/${id}`, { method: 'DELETE' });
 }
 
-export async function processar(
-  tipo: string,
-  arquivos: File[],
-): Promise<RespostaProcessamento> {
+export async function processar(tipo: string, arquivos: File[]): Promise<RespostaProcessamento> {
   const form = new FormData();
   for (const arquivo of arquivos) form.append('arquivos', arquivo);
   const resp = await request(`/api/rateio/${encodeURIComponent(tipo)}/processar`, {
@@ -1123,7 +1156,7 @@ export async function baixarCsv(tipo: string): Promise<void> {
  *  processamento em memória — no histórico a fonte tem de ser a execução aberta. */
 /** Seções exportáveis do snapshot de uma execução (espelha SECOES_CSV no backend). */
 export type SecaoExecucao =
-  | 'itens' | 'agregado' | 'reconciliacao' | 'divergencias' | 'estornos' | 'totais';
+  'itens' | 'agregado' | 'reconciliacao' | 'divergencias' | 'estornos' | 'totais';
 
 export async function baixarCsvExecucao(id: number, secao: SecaoExecucao = 'itens'): Promise<void> {
   const resp = await request(`/api/execucoes/${id}/resultado.csv?secao=${secao}`);
@@ -1147,7 +1180,11 @@ export async function baixarPjCsv(tipo: string): Promise<void> {
  * API). `competencia` no formato AAAAMM (ex.: "202607"). `empresa` (opcional)
  * filtra os colaboradores de uma única empresa (ex.: "Vertex", "Zenith").
  */
-export async function baixarTxt(tipo: string, competencia: string, empresa?: string): Promise<void> {
+export async function baixarTxt(
+  tipo: string,
+  competencia: string,
+  empresa?: string,
+): Promise<void> {
   let url = `/api/rateio/${encodeURIComponent(tipo)}/resultado.txt?competencia=${encodeURIComponent(competencia)}`;
   if (empresa) url += `&empresa=${encodeURIComponent(empresa)}`;
   const resp = await request(url);

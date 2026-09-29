@@ -33,7 +33,8 @@ export default function NotificacoesConfig({ admin, addToast }: Props) {
   };
 
   useEffect(() => {
-    api.obterConfigNotificacao()
+    api
+      .obterConfigNotificacao()
       .then(aplicar)
       .catch((e) => erro(e, 'Falha ao carregar os destinatários.'))
       .finally(() => setCarregando(false));
@@ -52,7 +53,11 @@ export default function NotificacoesConfig({ admin, addToast }: Props) {
   };
 
   if (carregando) {
-    return <div className="h-40 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+    return (
+      <div className="h-40 flex items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -114,7 +119,12 @@ export default function NotificacoesConfig({ admin, addToast }: Props) {
                 disabled={salvando}
                 className="flex items-center gap-1.5 py-2 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50"
               >
-                {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Salvar
+                {salvando ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}{' '}
+                Salvar
               </button>
             </div>
           )}

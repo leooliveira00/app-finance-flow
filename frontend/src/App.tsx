@@ -121,7 +121,9 @@ export default function App() {
   // competência já vem formatada ("MM/AAAA") do próprio boleto.
   const competenciaAtual =
     resultado && selectedTipo === api.TIPO_CLARO
-      ? (api.ehResultadoClaro(resultado.resultado) ? resultado.resultado.boletos[0]?.competencia ?? '' : '')
+      ? api.ehResultadoClaro(resultado.resultado)
+        ? (resultado.resultado.boletos[0]?.competencia ?? '')
+        : ''
       : formatarCompetencia(resultado?.resultado.itens?.[0]?.competencia);
 
   // Abre o modal único de confirmação (gravar -> ERP -> fiscal, conforme o tipo).
@@ -178,7 +180,9 @@ export default function App() {
           addToast,
         };
         if (selectedTipo === api.TIPO_COPARTICIPACAO) {
-          return <CoparticipacaoResultScreen {...propsResultado} onReprocessar={handleReprocessar} />;
+          return (
+            <CoparticipacaoResultScreen {...propsResultado} onReprocessar={handleReprocessar} />
+          );
         }
         if (selectedTipo === api.TIPO_CLARO) {
           return <ClaroResultScreen {...propsResultado} onReprocessar={handleReprocessar} />;
@@ -236,7 +240,9 @@ export default function App() {
         onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
       />
 
-      <div className={`flex-1 flex flex-col min-h-screen transition-[padding] duration-300 ease-in-out ${sidebarCollapsed ? 'pl-20' : 'pl-64'}`}>
+      <div
+        className={`flex-1 flex flex-col min-h-screen transition-[padding] duration-300 ease-in-out ${sidebarCollapsed ? 'pl-20' : 'pl-64'}`}
+      >
         <Header
           activeTab={activeTab}
           viewState={viewState}

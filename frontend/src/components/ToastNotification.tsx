@@ -49,7 +49,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
     success: <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />,
     warning: <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />,
     error: <XCircle className="h-5 w-5 text-rose-500 shrink-0" />,
-    info: <Info className="h-5 w-5 text-brand-500 shrink-0" />
+    info: <Info className="h-5 w-5 text-brand-500 shrink-0" />,
   };
 
   // Fundo branco com uma barra lateral colorida, em vez do card inteiro tingido.
@@ -58,7 +58,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
     success: 'border-l-emerald-400',
     warning: 'border-l-amber-400',
     error: 'border-l-rose-400',
-    info: 'border-l-brand-400'
+    info: 'border-l-brand-400',
   };
 
   return (

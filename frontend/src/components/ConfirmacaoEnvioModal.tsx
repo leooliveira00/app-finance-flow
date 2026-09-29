@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  X, Loader2, CheckCircle2, XCircle, Circle, MinusCircle, Database, Building2, Mail,
-  ArrowRight, ShieldAlert, Clock, ChevronRight,
+  X,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Circle,
+  MinusCircle,
+  Database,
+  Building2,
+  Mail,
+  ArrowRight,
+  ShieldAlert,
+  Clock,
+  ChevronRight,
 } from 'lucide-react';
 import * as api from '../api';
 import { ApiError, Resultado, EnvioResposta, TentativaEnvio } from '../api';
@@ -22,12 +33,18 @@ interface Props {
 function dataHora(iso: string): string {
   if (!iso) return '—';
   return new Date(iso)
-    .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    .toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     .replace(',', '');
 }
 
 function IconeStatus({ status }: { status: StepStatus }) {
-  if (status === 'running') return <Loader2 className="h-5 w-5 text-brand-500 animate-spin shrink-0" />;
+  if (status === 'running')
+    return <Loader2 className="h-5 w-5 text-brand-500 animate-spin shrink-0" />;
   if (status === 'done') return <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />;
   // Parcial: parte entrou na folha — atenção, não falha.
   if (status === 'partial') return <CheckCircle2 className="h-5 w-5 text-sky-500 shrink-0" />;
@@ -38,15 +55,27 @@ function IconeStatus({ status }: { status: StepStatus }) {
 
 // Etapa do fluxo: apenas ícone de status + título. O detalhe (erros, títulos,
 // tentativas) fica na área "Controle de execução", colapsável.
-function Passo({ status, icon: Icon, titulo }: { status: StepStatus; icon: typeof Database; titulo: string }) {
+function Passo({
+  status,
+  icon: Icon,
+  titulo,
+}: {
+  status: StepStatus;
+  icon: typeof Database;
+  titulo: string;
+}) {
   const apagado = status === 'pending' || status === 'skipped';
   return (
     <div className="flex items-center gap-3">
       <IconeStatus status={status} />
-      <div className={`flex items-center gap-1.5 text-sm font-semibold ${apagado ? 'text-slate-400' : 'text-slate-800'}`}>
+      <div
+        className={`flex items-center gap-1.5 text-sm font-semibold ${apagado ? 'text-slate-400' : 'text-slate-800'}`}
+      >
         <Icon className={`h-3.5 w-3.5 ${apagado ? 'text-slate-300' : 'text-slate-400'}`} />
         {titulo}
-        {status === 'skipped' && <span className="text-[10px] font-bold uppercase text-slate-300">não se aplica</span>}
+        {status === 'skipped' && (
+          <span className="text-[10px] font-bold uppercase text-slate-300">não se aplica</span>
+        )}
       </div>
     </div>
   );
@@ -56,7 +85,13 @@ function Passo({ status, icon: Icon, titulo }: { status: StepStatus; icon: typeo
 // boleto). Alimentado pelo estado GRAVADO no servidor — o backend persiste cada
 // título assim que o ERP responde —, então o que aparece aqui já existe no ERP,
 // não é uma estimativa da tela.
-function ProgressoDocumentos({ envios, total }: { envios: api.EnvioErpResultado[]; total: number }) {
+function ProgressoDocumentos({
+  envios,
+  total,
+}: {
+  envios: api.EnvioErpResultado[];
+  total: number;
+}) {
   const documentos = envios.filter((e) => e.referencia);
   const concluidos = documentos.filter((e) => e.status === 'enviado' || e.status === 'erro').length;
   const pct = total > 0 ? Math.min(100, Math.round((concluidos / total) * 100)) : 0;
@@ -68,12 +103,18 @@ function ProgressoDocumentos({ envios, total }: { envios: api.EnvioErpResultado[
         </p>
       </div>
       <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
-        <div className="h-full bg-brand-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full bg-brand-500 transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
       </div>
       {documentos.length > 0 && (
         <ul className="space-y-1">
           {documentos.map((e) => (
-            <li key={`${e.empresa}|${e.referencia}`} className="flex items-start gap-1.5 text-[11px]">
+            <li
+              key={`${e.empresa}|${e.referencia}`}
+              className="flex items-start gap-1.5 text-[11px]"
+            >
               {e.status === 'enviado' ? (
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-px text-emerald-500" />
               ) : e.status === 'erro' ? (
@@ -82,11 +123,17 @@ function ProgressoDocumentos({ envios, total }: { envios: api.EnvioErpResultado[
                 <Loader2 className="h-3.5 w-3.5 shrink-0 mt-px text-brand-500 animate-spin" />
               )}
               <span className={e.status === 'erro' ? 'text-rose-700' : 'text-slate-600'}>
-                {e.status === 'enviado'
-                  ? <>Título <strong className="font-semibold text-slate-800">{e.titulo || '—'}</strong> · conta {e.referencia}</>
-                  : e.status === 'erro'
-                    ? <>Conta {e.referencia}: não lançada</>
-                    : <>Conta {e.referencia} · aguardando a resposta do ERP</>}
+                {e.status === 'enviado' ? (
+                  <>
+                    Título{' '}
+                    <strong className="font-semibold text-slate-800">{e.titulo || '—'}</strong> ·
+                    conta {e.referencia}
+                  </>
+                ) : e.status === 'erro' ? (
+                  <>Conta {e.referencia}: não lançada</>
+                ) : (
+                  <>Conta {e.referencia} · aguardando a resposta do ERP</>
+                )}
               </span>
             </li>
           ))}
@@ -96,7 +143,14 @@ function ProgressoDocumentos({ envios, total }: { envios: api.EnvioErpResultado[
   );
 }
 
-export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arquivos, onClose, addToast }: Props) {
+export default function ConfirmacaoEnvioModal({
+  tipo,
+  competence,
+  snapshot,
+  arquivos,
+  onClose,
+  addToast,
+}: Props) {
   const lancaErp = api.lancaNoErp(tipo);
   // Lançar no ERP não implica notificar o fiscal (telefonia e coparticipação não
   // têm NF), nem toda rotina gera título (desconto em folha não gera).
@@ -138,7 +192,10 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
 
   useEffect(() => {
     if (!notificaFiscal) return;
-    api.destinatariosNotificacao(tipo).then(setDestinatarios).catch(() => setDestinatarios(null));
+    api
+      .destinatariosNotificacao(tipo)
+      .then(setDestinatarios)
+      .catch(() => setDestinatarios(null));
   }, [notificaFiscal, tipo]);
 
   // Tolerante a snapshot sem itens: preferimos o modal abrir com contagem zero a
@@ -158,13 +215,12 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
   const itensCopart: api.ItemCopartResultado[] =
     exigeCompPagamento && api.ehResultadoCopart(snapshot) ? snapshot.itens : [];
   const cpfsForaDoErp = new Set(
-    itensCopart
-      .filter((i) => i.bloqueado_envio ?? (i.pj || i.teto_aplicado))
-      .map((i) => i.cpf),
+    itensCopart.filter((i) => i.bloqueado_envio ?? (i.pj || i.teto_aplicado)).map((i) => i.cpf),
   ).size;
 
   const rodarFiscal = async (id: number) => {
-    setStFiscal('running'); setFiscalMsg('');
+    setStFiscal('running');
+    setFiscalMsg('');
     try {
       const f = await api.notificarFiscal(id);
       setStFiscal('done');
@@ -178,13 +234,18 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
   // Envio ao ERP + fiscal (reutilizado no "tentar novamente"). Idempotente: empresas
   // já integradas não são reenviadas (não duplica título).
   const rodarErp = async (id: number) => {
-    setStErp('running'); setErroPasso(''); setProgresso([]);
+    setStErp('running');
+    setErroPasso('');
+    setProgresso([]);
     // Enquanto o envio corre, consulta o estado gravado: cada título entra no
     // banco assim que o ERP responde, então o operador acompanha o avanço em vez
     // de olhar um passo parado por minutos.
     if (totalDocumentos > 1) {
       consultaRef.current = window.setInterval(() => {
-        api.getExecucao(id).then((atual) => setProgresso(atual.envios)).catch(() => {});
+        api
+          .getExecucao(id)
+          .then((atual) => setProgresso(atual.envios))
+          .catch(() => {});
       }, 2000);
     }
     let r: EnvioResposta;
@@ -196,11 +257,23 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
       if (status === 504 || status === 502 || status === 0) {
         try {
           const atual = await api.getExecucao(id);
-          r = { bloqueado: false, bloqueios: [], alertas: [], status: atual.status, envios: atual.envios, tentativas: atual.tentativas };
-          addToast('Tempo de resposta excedido no proxy. Estado real do envio recuperado do servidor.', 'info');
+          r = {
+            bloqueado: false,
+            bloqueios: [],
+            alertas: [],
+            status: atual.status,
+            envios: atual.envios,
+            tentativas: atual.tentativas,
+          };
+          addToast(
+            'Tempo de resposta excedido no proxy. Estado real do envio recuperado do servidor.',
+            'info',
+          );
         } catch {
           setStErp('error');
-          setErroPasso('Tempo de resposta do servidor excedido. O envio pode ter sido concluído; consulte o histórico antes de reenviar.');
+          setErroPasso(
+            'Tempo de resposta do servidor excedido. O envio pode ter sido concluído; consulte o histórico antes de reenviar.',
+          );
           return;
         }
       } else {
@@ -235,7 +308,8 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
 
   const iniciar = async () => {
     setFase('executando');
-    setStHist('running'); setErroPasso('');
+    setStHist('running');
+    setErroPasso('');
     let exec: api.Execucao;
     try {
       exec = await api.confirmarExecucao(tipo, competenciaRaw, snapshot, arquivos);
@@ -297,8 +371,14 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
   const controleAberto = controleManual ?? temErro; // abre sozinho quando há erro
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={fechar}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={fechar}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Cabeçalho */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -310,7 +390,11 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                 {fase === 'confirmar'
                   ? 'Confirmar e concluir'
                   : fase === 'fim'
-                    ? (sucessoTotal ? 'Concluído' : stErp === 'partial' ? 'Concluído parcialmente' : 'Processando')
+                    ? sucessoTotal
+                      ? 'Concluído'
+                      : stErp === 'partial'
+                        ? 'Concluído parcialmente'
+                        : 'Processando'
                     : 'Processando'}
               </h3>
               {/* Só o que existe: a coparticipação não tem competência de eventos,
@@ -319,11 +403,16 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                 {[
                   competence ? `Competência ${competence}` : '',
                   execId != null ? `Processo ${api.processoId(execId)}` : '',
-                ].filter(Boolean).join(' · ')}
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             </div>
           </div>
-          <button onClick={fechar} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer">
+          <button
+            onClick={fechar}
+            className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -336,16 +425,26 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                   quem está confirmando, e virava ruído aqui. */}
               <p className="text-xs text-slate-600 leading-relaxed">
                 {exigeCompPagamento ? (
-                  <>Ao confirmar, a execução é gravada no histórico e o
-                  {' '}<strong>desconto é lançado na folha</strong> de cada colaborador no ERP, por empresa.</>
+                  <>
+                    Ao confirmar, a execução é gravada no histórico e o{' '}
+                    <strong>desconto é lançado na folha</strong> de cada colaborador no ERP, por
+                    empresa.
+                  </>
                 ) : tituloPorDocumento ? (
-                  <>Ao confirmar, a execução é gravada no histórico e é gerada uma
-                  {' '}<strong>Autorização de Entrega por boleto</strong> no ERP
-                  {notificaFiscal ? <>, com notificação ao departamento fiscal ao concluir</> : null}.</>
+                  <>
+                    Ao confirmar, a execução é gravada no histórico e é gerada uma{' '}
+                    <strong>Autorização de Entrega por boleto</strong> no ERP
+                    {notificaFiscal ? (
+                      <>, com notificação ao departamento fiscal ao concluir</>
+                    ) : null}
+                    .
+                  </>
                 ) : lancaErp ? (
-                  <>Ao confirmar, a execução é gravada no histórico e os
-                  {' '}<strong>títulos são gerados no ERP</strong> (uma AE ou pré-nota por empresa)
-                  {notificaFiscal ? <>, com notificação ao departamento fiscal</> : null}.</>
+                  <>
+                    Ao confirmar, a execução é gravada no histórico e os{' '}
+                    <strong>títulos são gerados no ERP</strong> (uma AE ou pré-nota por empresa)
+                    {notificaFiscal ? <>, com notificação ao departamento fiscal</> : null}.
+                  </>
                 ) : (
                   <>Ao confirmar, a execução e os documentos são gravados no histórico.</>
                 )}
@@ -384,7 +483,8 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                   não vai ao ERP e precisa de tratativa manual. Uma linha. */}
               {exigeCompPagamento && cpfsForaDoErp > 0 && (
                 <p className="text-[11px] text-slate-500">
-                  {cpfsForaDoErp} colaborador(es) permanecem em tratativa manual (PJ ou teto) e não serão enviados.
+                  {cpfsForaDoErp} colaborador(es) permanecem em tratativa manual (PJ ou teto) e não
+                  serão enviados.
                 </p>
               )}
             </div>
@@ -397,82 +497,111 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                   <Passo
                     status={stErp}
                     icon={Building2}
-                    titulo={exigeCompPagamento ? 'Lançando o desconto na folha (ERP)' : 'Enviando títulos ao ERP'}
+                    titulo={
+                      exigeCompPagamento
+                        ? 'Lançando o desconto na folha (ERP)'
+                        : 'Enviando títulos ao ERP'
+                    }
                   />
                 )}
                 {lancaErp && totalDocumentos > 1 && (stErp === 'running' || stErp === 'error') && (
                   <ProgressoDocumentos envios={progresso} total={totalDocumentos} />
                 )}
-                {notificaFiscal && <Passo status={stFiscal} icon={Mail} titulo="Notificando o departamento fiscal" />}
+                {notificaFiscal && (
+                  <Passo status={stFiscal} icon={Mail} titulo="Notificando o departamento fiscal" />
+                )}
               </div>
 
               {/* Parcial: uma frase com o resultado, a lista de quem ficou de fora
                   agrupada por motivo, e o que o botão vai fazer. A mensagem técnica
                   do ERP (HTTP, "operação realizada com sucesso", contagens
                   repetidas) fica só no histórico — aqui ela confundia. */}
-              {fase === 'fim' && (stErp === 'partial' || (stErp === 'error' && pendentesTotal > 0)) && (
-                <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900 space-y-2">
-                  <p className="flex items-start gap-2">
-                    {aceitosTotal > 0
-                      ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
-                      : <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />}
-                    <span>
+              {fase === 'fim' &&
+                (stErp === 'partial' || (stErp === 'error' && pendentesTotal > 0)) && (
+                  <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900 space-y-2">
+                    <p className="flex items-start gap-2">
                       {aceitosTotal > 0 ? (
-                        <>
-                          <strong>{aceitosTotal} de {enviadosTotal} lançamentos incluídos na folha.</strong>
-                          {pendentesTotal > 0 && <> {pendentesTotal} não {pendentesTotal === 1 ? 'entrou' : 'entraram'}.</>}
-                        </>
+                        <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
                       ) : (
-                        <strong>
-                          Nenhum dos {enviadosTotal} lançamentos entrou na folha.
-                        </strong>
+                        <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
                       )}
-                    </span>
-                  </p>
-
-                  {pendentesTotal > 0 ? (
-                    <div className="pl-6 space-y-2">
-                      {motivosPendentes.map(([motivo, pessoas]) => (
-                        <div key={motivo}>
-                          <p className="font-semibold">{motivo} ({pessoas.length})</p>
-                          <ul className="mt-0.5 space-y-0.5">
-                            {pessoas.map((pe) => (
-                              <li key={`${pe.empresa}-${pe.matricula}`} className="flex gap-1.5">
-                                <span className="text-sky-400">·</span>
-                                <span>
-                                  {pe.nome || 'Colaborador'}{' '}
-                                  <span className="text-sky-700/70">— mat {pe.matricula} · {pe.empresa}</span>
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                      <p className="text-sky-800/80">
-                        “Reenviar pendentes” envia somente {pendentesTotal === 1 ? 'este registro' : `estes ${pendentesTotal}`}
-                        {aceitosTotal > 0 ? '; os já incluídos não voltam.' : '.'}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="pl-6">
-                      O ERP não informou quais registros recusou, então o reenvio automático fica
-                      bloqueado — mandaria tudo de novo e duplicaria quem já entrou. Trate pelo TXT
-                      ou manualmente.
+                      <span>
+                        {aceitosTotal > 0 ? (
+                          <>
+                            <strong>
+                              {aceitosTotal} de {enviadosTotal} lançamentos incluídos na folha.
+                            </strong>
+                            {pendentesTotal > 0 && (
+                              <>
+                                {' '}
+                                {pendentesTotal} não {pendentesTotal === 1 ? 'entrou' : 'entraram'}.
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <strong>Nenhum dos {enviadosTotal} lançamentos entrou na folha.</strong>
+                        )}
+                      </span>
                     </p>
-                  )}
-                </div>
-              )}
+
+                    {pendentesTotal > 0 ? (
+                      <div className="pl-6 space-y-2">
+                        {motivosPendentes.map(([motivo, pessoas]) => (
+                          <div key={motivo}>
+                            <p className="font-semibold">
+                              {motivo} ({pessoas.length})
+                            </p>
+                            <ul className="mt-0.5 space-y-0.5">
+                              {pessoas.map((pe) => (
+                                <li key={`${pe.empresa}-${pe.matricula}`} className="flex gap-1.5">
+                                  <span className="text-sky-400">·</span>
+                                  <span>
+                                    {pe.nome || 'Colaborador'}{' '}
+                                    <span className="text-sky-700/70">
+                                      — mat {pe.matricula} · {pe.empresa}
+                                    </span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                        <p className="text-sky-800/80">
+                          “Reenviar pendentes” envia somente{' '}
+                          {pendentesTotal === 1 ? 'este registro' : `estes ${pendentesTotal}`}
+                          {aceitosTotal > 0 ? '; os já incluídos não voltam.' : '.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="pl-6">
+                        O ERP não informou quais registros recusou, então o reenvio automático fica
+                        bloqueado — mandaria tudo de novo e duplicaria quem já entrou. Trate pelo
+                        TXT ou manualmente.
+                      </p>
+                    )}
+                  </div>
+                )}
 
               {/* Sucesso total */}
               {fase === 'fim' && sucessoTotal && (
                 <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
                   <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
                   <span>
-                    {exigeCompPagamento
-                      ? <><strong>Concluído.</strong> Rateio gravado e desconto lançado na folha no ERP.</>
-                      : lancaErp
-                        ? <><strong>Concluído.</strong> Rateio gravado, títulos criados no ERP{stFiscal === 'done' ? ' e fiscal notificado' : ''}.</>
-                        : <><strong>Concluído.</strong> Rateio armazenado no histórico.</>}
+                    {exigeCompPagamento ? (
+                      <>
+                        <strong>Concluído.</strong> Rateio gravado e desconto lançado na folha no
+                        ERP.
+                      </>
+                    ) : lancaErp ? (
+                      <>
+                        <strong>Concluído.</strong> Rateio gravado, títulos criados no ERP
+                        {stFiscal === 'done' ? ' e fiscal notificado' : ''}.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Concluído.</strong> Rateio armazenado no histórico.
+                      </>
+                    )}
                   </span>
                 </div>
               )}
@@ -481,7 +610,10 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
               {fase === 'fim' && stErp === 'done' && stFiscal === 'error' && (
                 <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
                   <Mail className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
-                  <span>Títulos criados, mas o fiscal não foi notificado: {fiscalMsg} Use “Reenviar ao fiscal”.</span>
+                  <span>
+                    Títulos criados, mas o fiscal não foi notificado: {fiscalMsg} Use “Reenviar ao
+                    fiscal”.
+                  </span>
                 </div>
               )}
 
@@ -492,20 +624,31 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                     onClick={() => setControleManual(!controleAberto)}
                     className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-left"
                   >
-                    <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${controleAberto ? 'rotate-90' : ''}`} />
+                    <ChevronRight
+                      className={`h-4 w-4 text-slate-400 transition-transform ${controleAberto ? 'rotate-90' : ''}`}
+                    />
                     <span className="text-xs font-bold text-slate-700">Controle de execução</span>
-                    {temErro && <span className="text-[10px] font-bold uppercase text-rose-600 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">com erro</span>}
+                    {temErro && (
+                      <span className="text-[10px] font-bold uppercase text-rose-600 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">
+                        com erro
+                      </span>
+                    )}
                   </button>
                   {controleAberto && (
                     <div className="p-3 space-y-3 border-t border-slate-100">
                       {erroPasso && (
                         <div className="flex items-start gap-2 text-[11px] text-rose-700">
-                          <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-rose-500" /><span>{erroPasso}</span>
+                          <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-rose-500" />
+                          <span>{erroPasso}</span>
                         </div>
                       )}
                       {bloqueios.map((b, i) => (
-                        <div key={i} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800">
-                          <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" /><span>{b}</span>
+                        <div
+                          key={i}
+                          className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800"
+                        >
+                          <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
+                          <span>{b}</span>
                         </div>
                       ))}
                       {tentativas.length > 0 && (
@@ -517,27 +660,52 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
                             {tentativas.map((t) => {
                               const ok = t.status === 'enviado';
                               const pend = t.status === 'pendente';
-                              const borda = ok ? 'border-emerald-300' : pend ? 'border-amber-300' : 'border-rose-300';
+                              const borda = ok
+                                ? 'border-emerald-300'
+                                : pend
+                                  ? 'border-amber-300'
+                                  : 'border-rose-300';
                               return (
                                 <div key={t.id} className={`border-l-2 ${borda} pl-2.5 py-0.5`}>
                                   <div className="flex items-center gap-2 flex-wrap text-[11px]">
-                                    <span className="font-mono text-slate-400 whitespace-nowrap">{dataHora(t.criado_em)}</span>
-                                    <span className="font-semibold text-slate-700">{t.empresa}</span>
+                                    <span className="font-mono text-slate-400 whitespace-nowrap">
+                                      {dataHora(t.criado_em)}
+                                    </span>
+                                    <span className="font-semibold text-slate-700">
+                                      {t.empresa}
+                                    </span>
                                     {/* Um título por boleto: sem a conta, as tentativas
                                         da mesma empresa ficam indistinguíveis. */}
                                     {t.referencia && (
-                                      <span className="text-slate-400 whitespace-nowrap">conta {t.referencia}</span>
+                                      <span className="text-slate-400 whitespace-nowrap">
+                                        conta {t.referencia}
+                                      </span>
                                     )}
-                                    {ok
-                                      ? (t.titulo
-                                        ? <span className="font-mono font-bold text-emerald-700">Título {t.titulo}</span>
-                                        : <span className="font-semibold text-emerald-700">enviado</span>)
-                                      : pend ? <span className="font-semibold text-amber-700">pendente</span>
-                                      : <span className="font-semibold text-rose-700">erro</span>}
-                                    {t.usuario && <span className="text-slate-400">· {t.usuario}</span>}
+                                    {ok ? (
+                                      t.titulo ? (
+                                        <span className="font-mono font-bold text-emerald-700">
+                                          Título {t.titulo}
+                                        </span>
+                                      ) : (
+                                        <span className="font-semibold text-emerald-700">
+                                          enviado
+                                        </span>
+                                      )
+                                    ) : pend ? (
+                                      <span className="font-semibold text-amber-700">pendente</span>
+                                    ) : (
+                                      <span className="font-semibold text-rose-700">erro</span>
+                                    )}
+                                    {t.usuario && (
+                                      <span className="text-slate-400">· {t.usuario}</span>
+                                    )}
                                   </div>
                                   {t.mensagem && !pend && (!ok || !t.titulo) && (
-                                    <p className={`text-[11px] mt-0.5 whitespace-pre-wrap break-words ${ok ? 'text-emerald-700' : 'text-rose-600'}`}>{t.mensagem}</p>
+                                    <p
+                                      className={`text-[11px] mt-0.5 whitespace-pre-wrap break-words ${ok ? 'text-emerald-700' : 'text-rose-600'}`}
+                                    >
+                                      {t.mensagem}
+                                    </p>
                                   )}
                                 </div>
                               );
@@ -557,35 +725,57 @@ export default function ConfirmacaoEnvioModal({ tipo, competence, snapshot, arqu
         <div className="bg-slate-50 px-5 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           {fase === 'confirmar' && (
             <>
-              <button onClick={fechar} className="py-2.5 px-5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">Cancelar</button>
+              <button
+                onClick={fechar}
+                className="py-2.5 px-5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
               <button
                 onClick={iniciar}
                 disabled={!podeConfirmar}
-                title={podeConfirmar ? undefined : 'Informe a competência de pagamento (folha do desconto).'}
+                title={
+                  podeConfirmar
+                    ? undefined
+                    : 'Informe a competência de pagamento (folha do desconto).'
+                }
                 className="flex items-center justify-center gap-1.5 py-2.5 px-5 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-950/10 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {lancaErp ? 'Confirmar e enviar' : 'Confirmar e gravar'} <ArrowRight className="h-4 w-4" />
+                {lancaErp ? 'Confirmar e enviar' : 'Confirmar e gravar'}{' '}
+                <ArrowRight className="h-4 w-4" />
               </button>
             </>
           )}
           {fase === 'executando' && (
-            <button disabled className="flex items-center justify-center gap-1.5 py-2.5 px-5 bg-brand-900/60 text-white rounded-xl text-xs font-bold cursor-not-allowed">
+            <button
+              disabled
+              className="flex items-center justify-center gap-1.5 py-2.5 px-5 bg-brand-900/60 text-white rounded-xl text-xs font-bold cursor-not-allowed"
+            >
               <Loader2 className="h-4 w-4 animate-spin" /> Processando…
             </button>
           )}
           {fase === 'fim' && (
             <>
-              <button onClick={fechar} className="py-2.5 px-5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+              <button
+                onClick={fechar}
+                className="py-2.5 px-5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
                 {sucessoTotal ? 'Concluir' : 'Fechar'}
               </button>
               {podeTentarErp && (
-                <button onClick={tentarNovamente} className="flex items-center justify-center gap-1.5 py-2.5 px-5 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold cursor-pointer">
+                <button
+                  onClick={tentarNovamente}
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-5 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold cursor-pointer"
+                >
                   <Building2 className="h-4 w-4" />
                   {stErp === 'partial' ? 'Reenviar pendentes' : 'Tentar novamente'}
                 </button>
               )}
               {podeReenviarFiscal && (
-                <button onClick={reenviarFiscal} className="flex items-center justify-center gap-1.5 py-2.5 px-5 border border-brand-200 bg-white hover:bg-brand-50 text-brand-900 rounded-xl text-xs font-bold cursor-pointer">
+                <button
+                  onClick={reenviarFiscal}
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-5 border border-brand-200 bg-white hover:bg-brand-50 text-brand-900 rounded-xl text-xs font-bold cursor-pointer"
+                >
                   <Mail className="h-4 w-4" /> Reenviar ao fiscal
                 </button>
               )}

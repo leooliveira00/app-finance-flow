@@ -16,9 +16,8 @@ export default function MobileWarning() {
       <MonitorSmartphone className="h-12 w-12 text-brand-300" />
       <h1 className="text-lg font-semibold text-white">Acesso disponível apenas em computador</h1>
       <p className="max-w-xs text-sm leading-relaxed text-white/70">
-        Para garantir a melhor experiência no processamento e na análise de
-        documentos, o FinanceFlow deve ser acessado a partir de um computador
-        desktop ou notebook.
+        Para garantir a melhor experiência no processamento e na análise de documentos, o
+        FinanceFlow deve ser acessado a partir de um computador desktop ou notebook.
       </p>
     </div>
   );

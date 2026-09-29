@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, CheckCircle2, XCircle, ShieldAlert, Loader2, X, Send, Info, Clock, Mail } from 'lucide-react';
+import {
+  Building2,
+  CheckCircle2,
+  XCircle,
+  ShieldAlert,
+  Loader2,
+  X,
+  Send,
+  Info,
+  Clock,
+  Mail,
+} from 'lucide-react';
 import * as api from '../api';
 import { ApiError, Execucao, EnvioResposta } from '../api';
 import { Toast } from '../types';
@@ -18,7 +29,12 @@ function moeda(valor: string | number): string {
 function dataHora(iso: string): string {
   if (!iso) return '—';
   return new Date(iso)
-    .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    .toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     .replace(',', '');
 }
 
@@ -55,9 +71,15 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
   const aplicarResultado = async (r: EnvioResposta, recuperado: boolean) => {
     setResp(r);
     if (recuperado) {
-      addToast('Tempo de resposta excedido no proxy. Estado real do envio recuperado do servidor.', 'info');
+      addToast(
+        'Tempo de resposta excedido no proxy. Estado real do envio recuperado do servidor.',
+        'info',
+      );
     } else if (r.bloqueado) {
-      addToast('Envio bloqueado. Verifique as pendências; a execução foi gravada para reenvio.', 'warning');
+      addToast(
+        'Envio bloqueado. Verifique as pendências; a execução foi gravada para reenvio.',
+        'warning',
+      );
     } else if (r.envios.some((e) => e.status === 'parcial')) {
       const pend = r.envios.reduce((n, e) => n + (e.matriculas_pendentes?.length ?? 0), 0);
       const aceitos = r.envios.reduce((n, e) => n + (e.aceitos ?? 0), 0);
@@ -72,13 +94,20 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
       addToast('Enviado. Há empresa com rotina pendente (pré-nota).', 'info');
     } else {
       addToast(
-        descontoEmFolha ? 'Desconto lançado na folha com sucesso.' : 'Lançamentos enviados ao ERP com sucesso.',
+        descontoEmFolha
+          ? 'Desconto lançado na folha com sucesso.'
+          : 'Lançamentos enviados ao ERP com sucesso.',
         'success',
       );
     }
     // Conclusão dos títulos (todas as empresas integradas): notifica o fiscal
     // automaticamente e dá o retorno de conclusão/falha ao usuário.
-    if (notificaFiscal && r.status === 'enviado' && !execucao.notificado_em && fiscalStatus === 'idle') {
+    if (
+      notificaFiscal &&
+      r.status === 'enviado' &&
+      !execucao.notificado_em &&
+      fiscalStatus === 'idle'
+    ) {
       await dispararFiscal(true);
     }
   };
@@ -98,11 +127,20 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
         try {
           const atual = await api.getExecucao(execucao.id);
           await aplicarResultado(
-            { bloqueado: false, bloqueios: [], alertas: [], status: atual.status, envios: atual.envios, tentativas: atual.tentativas },
+            {
+              bloqueado: false,
+              bloqueios: [],
+              alertas: [],
+              status: atual.status,
+              envios: atual.envios,
+              tentativas: atual.tentativas,
+            },
             true,
           );
         } catch {
-          setErroModal('O servidor demorou a responder (tempo excedido). O envio pode ter continuado — atualize o histórico para confirmar o resultado antes de reenviar.');
+          setErroModal(
+            'O servidor demorou a responder (tempo excedido). O envio pode ter continuado — atualize o histórico para confirmar o resultado antes de reenviar.',
+          );
           addToast('Tempo de resposta excedido. Verifique o histórico.', 'warning');
         }
       } else {
@@ -119,14 +157,22 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
 
   const envios = resp?.envios ?? enviosIniciais;
   const tentativas = resp?.tentativas ?? execucao.tentativas ?? [];
-  const bloqueios = resp?.bloqueado ? resp.bloqueios ?? [] : [];
+  const bloqueios = resp?.bloqueado ? (resp.bloqueios ?? []) : [];
   const alertas = resp?.alertas ?? [];
   const finalizado = resp !== null;
   const temEnviado = envios.some((e) => e.status === 'enviado');
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={() =>
+        onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)
+      }
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-9 w-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
@@ -141,11 +187,18 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
                   execucao.competencia ? `Competência ${execucao.competencia}` : '',
                   moeda(execucao.total),
                   `Processo ${api.processoId(execucao.id)}`,
-                ].filter(Boolean).join(' · ')}
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             </div>
           </div>
-          <button onClick={() => onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer">
+          <button
+            onClick={() =>
+              onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)
+            }
+            className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -162,13 +215,17 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
           {!finalizado && bloqueios.length === 0 && envios.length === 0 && !erroModal && (
             <p className="text-xs text-slate-600 leading-relaxed">
               {descontoEmFolha ? (
-                <>O desconto será lançado na folha de cada colaborador, por empresa, na
-                {' '}competência {execucao.competencia || 'gravada na execução'}. Empresas já
-                {' '}lançadas não são reenviadas.</>
+                <>
+                  O desconto será lançado na folha de cada colaborador, por empresa, na competência{' '}
+                  {execucao.competencia || 'gravada na execução'}. Empresas já lançadas não são
+                  reenviadas.
+                </>
               ) : (
-                <>Serão criadas as Autorizações de Entrega (uma por empresa/NF), gerando os
-                {' '}títulos no ERP. Se faltar contrato em alguma empresa,{' '}
-                <strong>nada é enviado</strong> e a execução fica salva para reenvio.</>
+                <>
+                  Serão criadas as Autorizações de Entrega (uma por empresa/NF), gerando os títulos
+                  no ERP. Se faltar contrato em alguma empresa, <strong>nada é enviado</strong> e a
+                  execução fica salva para reenvio.
+                </>
               )}
             </p>
           )}
@@ -177,12 +234,17 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
           {bloqueios.length > 0 && (
             <div className="space-y-2">
               {bloqueios.map((b, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                <div
+                  key={i}
+                  className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
+                >
                   <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
                   <span>{b}</span>
                 </div>
               ))}
-              <p className="text-[11px] text-slate-500">Resolva as pendências no ERP e reenvie por aqui ou pelo histórico.</p>
+              <p className="text-[11px] text-slate-500">
+                Resolva as pendências no ERP e reenvie por aqui ou pelo histórico.
+              </p>
             </div>
           )}
 
@@ -190,7 +252,10 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
           {alertas.length > 0 && (
             <div className="space-y-2">
               {alertas.map((a, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800">
+                <div
+                  key={i}
+                  className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800"
+                >
                   <Info className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
                   <span>{a}</span>
                 </div>
@@ -216,15 +281,22 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
                 return (
                   <div key={i} className={`rounded-xl border p-3 ${cls}`}>
                     <div className="flex items-center gap-2">
-                      {ok ? <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        : parcial ? <CheckCircle2 className="h-4 w-4 text-sky-500" />
-                        : pendente ? <Clock className="h-4 w-4 text-amber-500" />
-                        : <XCircle className="h-4 w-4 text-rose-500" />}
+                      {ok ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      ) : parcial ? (
+                        <CheckCircle2 className="h-4 w-4 text-sky-500" />
+                      ) : pendente ? (
+                        <Clock className="h-4 w-4 text-amber-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-rose-500" />
+                      )}
                       <Building2 className="h-3.5 w-3.5 text-slate-400" />
                       <span className="text-xs font-bold text-slate-900">{e.empresa}</span>
                       {/* Telefonia: um lançamento por boleto na mesma empresa. */}
                       {e.referencia && (
-                        <span className="text-[11px] text-slate-500 whitespace-nowrap">conta {e.referencia}</span>
+                        <span className="text-[11px] text-slate-500 whitespace-nowrap">
+                          conta {e.referencia}
+                        </span>
                       )}
                       {ok && (
                         <span className="ml-auto text-[11px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded">
@@ -232,36 +304,62 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
                         </span>
                       )}
                       {(parcial || (!ok && !pendente && e.enviados)) && (
-                        <span className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded border ${
-                          parcial ? 'text-sky-700 bg-sky-100 border-sky-200' : 'text-rose-700 bg-rose-100 border-rose-200'
-                        }`}>
+                        <span
+                          className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded border ${
+                            parcial
+                              ? 'text-sky-700 bg-sky-100 border-sky-200'
+                              : 'text-rose-700 bg-rose-100 border-rose-200'
+                          }`}
+                        >
                           {e.aceitos ?? 0} de {e.enviados} incluída(s)
                         </span>
                       )}
-                      {pendente && <span className="ml-auto text-[10px] font-bold uppercase text-amber-600">Pendente</span>}
-                      {!ok && !parcial && !pendente && <span className="ml-auto text-[10px] font-bold uppercase text-rose-600">Erro</span>}
+                      {pendente && (
+                        <span className="ml-auto text-[10px] font-bold uppercase text-amber-600">
+                          Pendente
+                        </span>
+                      )}
+                      {!ok && !parcial && !pendente && (
+                        <span className="ml-auto text-[10px] font-bold uppercase text-rose-600">
+                          Erro
+                        </span>
+                      )}
                     </div>
-                    {e.contrato && <p className="text-[11px] text-slate-500 mt-1">Contrato {e.contrato}</p>}
+                    {e.contrato && (
+                      <p className="text-[11px] text-slate-500 mt-1">Contrato {e.contrato}</p>
+                    )}
                     {/* Havendo lista identificada, ela substitui a mensagem técnica
                         do ERP — vale para parcial E para erro total (um reenvio que
                         falhou inteiro também tem os recusados nomeados). O texto cru
                         continua no histórico. */}
                     {temPendentes ? (
-                      <ul className={`text-[11px] mt-1.5 space-y-1 ${parcial ? 'text-sky-900' : 'text-rose-900'}`}>
+                      <ul
+                        className={`text-[11px] mt-1.5 space-y-1 ${parcial ? 'text-sky-900' : 'text-rose-900'}`}
+                      >
                         {e.matriculas_pendentes!.map((pe) => (
                           <li key={pe.matricula}>
                             <span className="font-semibold">{pe.nome || 'Colaborador'}</span>
                             <span className="opacity-70"> — mat {pe.matricula}</span>
-                            {pe.motivo && <span className="block pl-3 opacity-80">{pe.motivo}</span>}
+                            {pe.motivo && (
+                              <span className="block pl-3 opacity-80">{pe.motivo}</span>
+                            )}
                           </li>
                         ))}
                       </ul>
                     ) : (
                       <>
                         {!ok && e.mensagem && (
-                          <p className={`text-[11px] mt-1 whitespace-pre-wrap break-words ${
-                            parcial ? 'text-sky-800' : pendente ? 'text-amber-700' : 'text-rose-700'
-                          }`}>{e.mensagem}</p>
+                          <p
+                            className={`text-[11px] mt-1 whitespace-pre-wrap break-words ${
+                              parcial
+                                ? 'text-sky-800'
+                                : pendente
+                                  ? 'text-amber-700'
+                                  : 'text-rose-700'
+                            }`}
+                          >
+                            {e.mensagem}
+                          </p>
                         )}
                         {parcial && (
                           <p className="text-[11px] mt-1 text-sky-800">
@@ -287,15 +385,17 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
           {fiscalStatus === 'ok' && (
             <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
               <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
-              <span><strong>Concluído.</strong> Títulos criados e {fiscalMsg}</span>
+              <span>
+                <strong>Concluído.</strong> Títulos criados e {fiscalMsg}
+              </span>
             </div>
           )}
           {fiscalStatus === 'erro' && (
             <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
               <XCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
               <span>
-                <strong>Títulos criados, mas falha ao notificar o fiscal:</strong> {fiscalMsg}
-                {' '}Reenvie ao fiscal pelo botão abaixo.
+                <strong>Títulos criados, mas falha ao notificar o fiscal:</strong> {fiscalMsg}{' '}
+                Reenvie ao fiscal pelo botão abaixo.
               </span>
             </div>
           )}
@@ -306,7 +406,8 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
             <p className="text-[11px] text-slate-500">
               O reenvio trata somente{' '}
               <strong>
-                {envios.reduce((n, e) => n + (e.matriculas_pendentes?.length ?? 0), 0)} registro(s) pendente(s)
+                {envios.reduce((n, e) => n + (e.matriculas_pendentes?.length ?? 0), 0)} registro(s)
+                pendente(s)
               </strong>
               ; os já incluídos na folha não voltam.
             </p>
@@ -322,18 +423,28 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
                 {tentativas.map((t) => {
                   const ok = t.status === 'enviado';
                   const pend = t.status === 'pendente';
-                  const borda = ok ? 'border-emerald-300' : pend ? 'border-amber-300' : 'border-rose-300';
+                  const borda = ok
+                    ? 'border-emerald-300'
+                    : pend
+                      ? 'border-amber-300'
+                      : 'border-rose-300';
                   return (
                     <div key={t.id} className={`border-l-2 ${borda} pl-2.5 py-0.5`}>
                       <div className="flex items-center gap-2 flex-wrap text-[11px]">
-                        <span className="font-mono text-slate-400 whitespace-nowrap">{dataHora(t.criado_em)}</span>
+                        <span className="font-mono text-slate-400 whitespace-nowrap">
+                          {dataHora(t.criado_em)}
+                        </span>
                         <span className="font-semibold text-slate-700">{t.empresa}</span>
                         {t.referencia && (
-                          <span className="text-slate-400 whitespace-nowrap">conta {t.referencia}</span>
+                          <span className="text-slate-400 whitespace-nowrap">
+                            conta {t.referencia}
+                          </span>
                         )}
                         {ok ? (
                           t.titulo ? (
-                            <span className="font-mono font-bold text-emerald-700">Título {t.titulo}</span>
+                            <span className="font-mono font-bold text-emerald-700">
+                              Título {t.titulo}
+                            </span>
                           ) : (
                             <span className="font-semibold text-emerald-700">enviado</span>
                           )
@@ -345,7 +456,9 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
                         {t.usuario && <span className="text-slate-400">· {t.usuario}</span>}
                       </div>
                       {!ok && !pend && t.mensagem && (
-                        <p className="text-[11px] text-rose-600 mt-0.5 whitespace-pre-wrap break-words">{t.mensagem}</p>
+                        <p className="text-[11px] text-rose-600 mt-0.5 whitespace-pre-wrap break-words">
+                          {t.mensagem}
+                        </p>
                       )}
                     </div>
                   );
@@ -357,7 +470,9 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
 
         <div className="bg-slate-50 px-5 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button
-            onClick={() => onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)}
+            onClick={() =>
+              onClose(resp ? { ...execucao, status: resp.status, envios: resp.envios } : undefined)
+            }
             className="py-2.5 px-5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             {finalizado ? 'Fechar' : 'Depois'}
@@ -370,8 +485,16 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
               disabled={notificando}
               className="flex items-center justify-center gap-1.5 py-2.5 px-5 border border-brand-200 bg-white hover:bg-brand-50 text-brand-900 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
             >
-              {notificando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-              {notificando ? 'Enviando…' : fiscalStatus === 'ok' ? 'Reenviar ao fiscal' : 'Enviar ao fiscal'}
+              {notificando ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              {notificando
+                ? 'Enviando…'
+                : fiscalStatus === 'ok'
+                  ? 'Reenviar ao fiscal'
+                  : 'Enviar ao fiscal'}
             </button>
           )}
           <button
@@ -385,8 +508,12 @@ export default function EnvioErpModal({ execucao, onClose, addToast }: Props) {
               : envios.some((e) => e.status === 'parcial')
                 ? 'Reenviar pendentes'
                 : finalizado
-                  ? (descontoEmFolha ? 'Relançar' : 'Reenviar')
-                  : (descontoEmFolha ? 'Lançar na folha' : 'Enviar ao ERP')}
+                  ? descontoEmFolha
+                    ? 'Relançar'
+                    : 'Reenviar'
+                  : descontoEmFolha
+                    ? 'Lançar na folha'
+                    : 'Enviar ao ERP'}
           </button>
         </div>
       </div>

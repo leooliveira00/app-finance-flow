@@ -1,5 +1,13 @@
 import React, { useRef, useState, useEffect, type ReactNode } from 'react';
-import { Upload, FileSpreadsheet, FileText, Trash2, ShieldAlert, ArrowLeft, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  FileSpreadsheet,
+  FileText,
+  Trash2,
+  ShieldAlert,
+  ArrowLeft,
+  Loader2,
+} from 'lucide-react';
 import * as api from '../api';
 import { ApiError, RespostaProcessamento } from '../api';
 import { Toast } from '../types';
@@ -26,9 +34,11 @@ function etapasDoTipo(tipo: string): string[] {
 }
 
 /** Operadora, documento de reconciliação e chave de conciliação, pelo tipo. */
-function contextoOperadora(
-  tipo: string,
-): { operadora: string; documento: string; conciliacao: string } {
+function contextoOperadora(tipo: string): {
+  operadora: string;
+  documento: string;
+  conciliacao: string;
+} {
   if (tipo.includes('bradesco')) {
     return {
       operadora: 'Bradesco',
@@ -93,8 +103,8 @@ function orientacoesDoTipo(tipo: string): Orientacoes {
       instrucao: (
         <>
           Envie os <strong>Consolidados de coparticipação</strong> (.xlsx) da Unimed e do Bradesco.
-          Não há nota fiscal: o resultado é um desconto na folha do colaborador, não um pagamento
-          à operadora.
+          Não há nota fiscal: o resultado é um desconto na folha do colaborador, não um pagamento à
+          operadora.
         </>
       ),
       accept: '.xlsx,.xls',
@@ -138,7 +148,12 @@ function formatarTamanho(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcessComplete, addToast }: ExecutionFlowScreenProps) {
+export default function ExecutionFlowScreen({
+  tipo,
+  onBackToDashboard,
+  onProcessComplete,
+  addToast,
+}: ExecutionFlowScreenProps) {
   const [arquivos, setArquivos] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [processando, setProcessando] = useState(false);
@@ -193,7 +208,12 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
       setProgresso(100);
       setTimeout(() => onProcessComplete(resposta, arquivos), 350);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 422 && err.detail && typeof err.detail === 'object') {
+      if (
+        err instanceof ApiError &&
+        err.status === 422 &&
+        err.detail &&
+        typeof err.detail === 'object'
+      ) {
         const d = err.detail as { erros?: string[] };
         (d.erros || ['Arquivos inválidos.']).forEach((m) => addToast(m, 'error'));
       } else if (err instanceof ApiError && err.status === 502) {
@@ -239,12 +259,26 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
             const ativo = i === etapaAtual && progresso < 100;
             return (
               <div key={i} className="flex items-center gap-2.5">
-                <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${
-                  feito ? 'bg-emerald-500 text-white' : ativo ? 'bg-brand-900 text-white' : 'bg-slate-200 text-slate-500'
-                }`}>
+                <div
+                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${
+                    feito
+                      ? 'bg-emerald-500 text-white'
+                      : ativo
+                        ? 'bg-brand-900 text-white'
+                        : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
                   {feito ? '✓' : i + 1}
                 </div>
-                <span className={feito ? 'text-slate-400 line-through' : ativo ? 'text-brand-900 font-bold' : 'text-slate-400'}>
+                <span
+                  className={
+                    feito
+                      ? 'text-slate-400 line-through'
+                      : ativo
+                        ? 'text-brand-900 font-bold'
+                        : 'text-slate-400'
+                  }
+                >
                   {msg}
                 </span>
               </div>
@@ -274,8 +308,12 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-brand-50 text-brand-800 font-bold text-xs flex items-center justify-center">1</div>
-              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Carregar arquivos</h2>
+              <div className="h-6 w-6 rounded-md bg-brand-50 text-brand-800 font-bold text-xs flex items-center justify-center">
+                1
+              </div>
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+                Carregar arquivos
+              </h2>
             </div>
             <p className="text-xs text-slate-500">{orientacoes.instrucao}</p>
 
@@ -292,12 +330,17 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
             />
 
             <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
               onDragLeave={() => setDragOver(false)}
               onDrop={onDrop}
               onClick={() => inputRef.current?.click()}
               className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-all ${
-                dragOver ? 'border-brand-600 bg-brand-50/50' : 'border-slate-300 hover:border-brand-500 hover:bg-slate-50'
+                dragOver
+                  ? 'border-brand-600 bg-brand-50/50'
+                  : 'border-slate-300 hover:border-brand-500 hover:bg-slate-50'
               }`}
             >
               <Upload className="h-8 w-8 text-slate-400 mb-2" />
@@ -310,14 +353,21 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
                 {arquivos.map((f) => {
                   const Icone = iconeArquivo(f.name);
                   return (
-                    <div key={f.name} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                    <div
+                      key={f.name}
+                      className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3"
+                    >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="h-8 w-8 bg-brand-900 rounded-lg flex items-center justify-center shrink-0">
                           <Icone className="h-4 w-4 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-xs font-bold text-slate-800 block truncate">{f.name}</span>
-                          <span className="text-[10px] font-medium text-slate-400">{formatarTamanho(f.size)}</span>
+                          <span className="text-xs font-bold text-slate-800 block truncate">
+                            {f.name}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400">
+                            {formatarTamanho(f.size)}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -348,7 +398,9 @@ export default function ExecutionFlowScreen({ tipo, onBackToDashboard, onProcess
                 id="btn-process-rateio"
                 onClick={handleProcessar}
                 className={`py-2.5 px-7 rounded-xl text-xs font-bold text-white shadow-md transition-all cursor-pointer ${
-                  arquivos.length > 0 ? 'bg-brand-900 hover:bg-brand-950' : 'bg-slate-300 shadow-none cursor-not-allowed'
+                  arquivos.length > 0
+                    ? 'bg-brand-900 hover:bg-brand-950'
+                    : 'bg-slate-300 shadow-none cursor-not-allowed'
                 }`}
                 disabled={arquivos.length === 0}
               >

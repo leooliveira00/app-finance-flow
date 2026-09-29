@@ -43,7 +43,11 @@ export default function LoginScreen({ onLogin, addToast }: LoginScreenProps) {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-900 rounded-full filter blur-3xl opacity-50 translate-x-1/3 translate-y-1/3" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 flex flex-col items-center gap-4">
-        <img src={logoSymbol} alt="FinanceFlow" className="h-20 w-auto object-contain drop-shadow-lg" />
+        <img
+          src={logoSymbol}
+          alt="FinanceFlow"
+          className="h-20 w-auto object-contain drop-shadow-lg"
+        />
         <span aria-hidden="true" className="h-px w-20 bg-white/25" />
         {/* Mesmo tratamento do menu. */}
         <span className="text-xl font-medium tracking-[0.3em] pl-[0.3em] text-white">
@@ -64,7 +68,10 @@ export default function LoginScreen({ onLogin, addToast }: LoginScreenProps) {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
+              >
                 E-mail
               </label>
               <div className="mt-1.5 relative rounded-xl shadow-sm">
@@ -86,7 +93,10 @@ export default function LoginScreen({ onLogin, addToast }: LoginScreenProps) {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
+              >
                 Senha de acesso
               </label>
               <div className="mt-1.5 relative rounded-xl shadow-sm">

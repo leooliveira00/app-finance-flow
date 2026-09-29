@@ -5,7 +5,9 @@ export default function PagamentoConfig() {
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-bold text-slate-900">Pagamento Unimed e Bradesco</h2>
-        <p className="text-xs text-slate-500">Parâmetros do rateio de pagamento de convênios de saúde.</p>
+        <p className="text-xs text-slate-500">
+          Parâmetros do rateio de pagamento de convênios de saúde.
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-start gap-3">
@@ -15,9 +17,8 @@ export default function PagamentoConfig() {
         <div>
           <h3 className="text-sm font-bold text-slate-900">De-para de empresas</h3>
           <p className="text-xs text-slate-500 mt-0.5 leading-relaxed max-w-prose">
-            O mapeamento das empresas das operadoras para os centros de custo do Protheus
-            ainda vive no código (validators). A migração para cadastro editável nesta tela
-            está planejada.
+            O mapeamento das empresas das operadoras para os centros de custo do Protheus ainda vive
+            no código (validators). A migração para cadastro editável nesta tela está planejada.
           </p>
         </div>
       </div>

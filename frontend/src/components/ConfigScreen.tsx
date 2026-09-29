@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { HeartPulse, Banknote, Users, Layers, Lock, Building2, Briefcase, Search, Smartphone, Truck, Workflow, Mail } from 'lucide-react';
+import {
+  HeartPulse,
+  Banknote,
+  Users,
+  Layers,
+  Lock,
+  Building2,
+  Briefcase,
+  Search,
+  Smartphone,
+  Truck,
+  Workflow,
+  Mail,
+} from 'lucide-react';
 import * as api from '../api';
 import { Usuario } from '../api';
 import * as perm from '../permissoes';
@@ -26,15 +39,19 @@ interface Secao {
   grupo: string;
   label: string;
   icon: typeof HeartPulse;
-  soAdmin?: boolean;        // só admin global (gestão organizacional)
-  tipos?: string[];         // rateios que a seção configura (filtra por área)
+  soAdmin?: boolean; // só admin global (gestão organizacional)
+  tipos?: string[]; // rateios que a seção configura (filtra por área)
   render: () => ReactNode;
 }
 
 // Ordem canônica dos grupos na navegação.
 const GRUPOS_ORDEM = ['Rateios', 'Cadastros', 'Organização'];
 
-const semAcento = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const semAcento = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
 export default function ConfigScreen({ usuario, addToast }: Props) {
   const admin = perm.ehAdmin(usuario);
@@ -46,7 +63,8 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
   const [busca, setBusca] = useState('');
 
   useEffect(() => {
-    api.getModulos(true)
+    api
+      .getModulos(true)
       .then((mods) => setTiposVisiveis(new Set(mods.map((m) => m.tipo))))
       .catch(() => setTiposVisiveis(new Set()));
   }, []);
@@ -54,17 +72,26 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
   const secoes: Secao[] = useMemo(() => {
     const lista: Secao[] = [
       {
-        id: 'copart', grupo: 'Rateios', label: 'Coparticipação', icon: HeartPulse,
+        id: 'copart',
+        grupo: 'Rateios',
+        label: 'Coparticipação',
+        icon: HeartPulse,
         tipos: ['coparticipacao-plano-saude'],
         render: () => <CoparticipacaoConfig admin={podeEditarCadastro} addToast={addToast} />,
       },
       {
-        id: 'pagamento', grupo: 'Rateios', label: 'Pagamento', icon: Banknote,
+        id: 'pagamento',
+        grupo: 'Rateios',
+        label: 'Pagamento',
+        icon: Banknote,
         tipos: ['pagamento-unimed', 'pagamento-bradesco', 'pagamento-coparticipacao-unimed'],
         render: () => <PagamentoConfig />,
       },
       {
-        id: 'telefonia', grupo: 'Rateios', label: 'Telefonia', icon: Smartphone,
+        id: 'telefonia',
+        grupo: 'Rateios',
+        label: 'Telefonia',
+        icon: Smartphone,
         tipos: [api.TIPO_CLARO],
         // Quem mantém é a área dona do processo (TI): admin global OU quem enxerga
         // o rateio da Claro. O backend aplica a mesma regra nas escritas.
@@ -76,37 +103,65 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
         ),
       },
       {
-        id: 'centros-custo', grupo: 'Cadastros', label: 'Centros de custo', icon: Building2,
+        id: 'centros-custo',
+        grupo: 'Cadastros',
+        label: 'Centros de custo',
+        icon: Building2,
         render: () => <CentroCustoConfig admin={podeEditarCadastro} addToast={addToast} />,
       },
       {
-        id: 'empresas', grupo: 'Cadastros', label: 'Empresas', icon: Building2,
+        id: 'empresas',
+        grupo: 'Cadastros',
+        label: 'Empresas',
+        icon: Building2,
         render: () => <EmpresasConfig admin={podeEditarCadastro} addToast={addToast} />,
       },
       {
-        id: 'fornecedores', grupo: 'Cadastros', label: 'Fornecedores', icon: Truck,
+        id: 'fornecedores',
+        grupo: 'Cadastros',
+        label: 'Fornecedores',
+        icon: Truck,
         render: () => <FornecedoresConfig admin={podeEditarCadastro} addToast={addToast} />,
       },
       {
-        id: 'pj', grupo: 'Cadastros', label: 'Colaboradores PJ', icon: Briefcase,
+        id: 'pj',
+        grupo: 'Cadastros',
+        label: 'Colaboradores PJ',
+        icon: Briefcase,
         render: () => <ColaboradoresPjConfig admin={podeEditarCadastro} addToast={addToast} />,
       },
       {
-        id: 'usuarios', grupo: 'Organização', label: 'Usuários', icon: Users, soAdmin: true,
+        id: 'usuarios',
+        grupo: 'Organização',
+        label: 'Usuários',
+        icon: Users,
+        soAdmin: true,
         render: () => <UsuariosConfig usuarioAtual={usuario.email} addToast={addToast} />,
       },
       {
         // Disponibilidade vale para a ferramenta inteira, então fica em
         // Organização, e não junto dos cadastros de cada rateio.
-        id: 'processos', grupo: 'Organização', label: 'Processos', icon: Workflow, soAdmin: true,
+        id: 'processos',
+        grupo: 'Organização',
+        label: 'Processos',
+        icon: Workflow,
+        soAdmin: true,
         render: () => <ProcessosConfig addToast={addToast} />,
       },
       {
-        id: 'notificacoes', grupo: 'Organização', label: 'Notificações', icon: Mail, soAdmin: true,
+        id: 'notificacoes',
+        grupo: 'Organização',
+        label: 'Notificações',
+        icon: Mail,
+        soAdmin: true,
         render: () => <NotificacoesConfig admin={admin} addToast={addToast} />,
       },
       {
-        id: 'setores', grupo: 'Organização', label: 'Setores e permissões', icon: Layers, soAdmin: true,
+        id: 'setores',
+        grupo: 'Organização',
+        label: 'Setores e permissões',
+        icon: Layers,
+        soAdmin: true,
         render: () => <SetoresConfig addToast={addToast} />,
       },
     ];
@@ -136,14 +191,18 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
       if (!mapa.has(s.grupo)) mapa.set(s.grupo, []);
       mapa.get(s.grupo)!.push(s);
     }
-    return GRUPOS_ORDEM.filter((g) => mapa.has(g)).map((g) => [g, mapa.get(g)!] as [string, Secao[]]);
+    return GRUPOS_ORDEM.filter((g) => mapa.has(g)).map(
+      (g) => [g, mapa.get(g)!] as [string, Secao[]],
+    );
   }, [filtradas]);
 
   return (
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-xl font-bold text-slate-900">Configurações</h1>
-        <p className="text-xs text-slate-500">Parâmetros dos rateios, cadastros compartilhados e gestão de acesso.</p>
+        <p className="text-xs text-slate-500">
+          Parâmetros dos rateios, cadastros compartilhados e gestão de acesso.
+        </p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -163,7 +222,9 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
 
             {grupos.map(([grupo, itens]) => (
               <div key={grupo}>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2.5 py-1.5">{grupo}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2.5 py-1.5">
+                  {grupo}
+                </p>
                 <div className="space-y-0.5">
                   {itens.map((s) => {
                     const Icone = s.icon;
@@ -173,10 +234,14 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
                         key={s.id}
                         onClick={() => setAtiva(s.id)}
                         className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                          on ? 'bg-sky-50 text-sky-700 font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'
+                          on
+                            ? 'bg-sky-50 text-sky-700 font-bold'
+                            : 'text-slate-600 hover:bg-slate-50 font-medium'
                         }`}
                       >
-                        <Icone className={`h-4 w-4 shrink-0 ${on ? 'text-sky-600' : 'text-slate-400'}`} />
+                        <Icone
+                          className={`h-4 w-4 shrink-0 ${on ? 'text-sky-600' : 'text-slate-400'}`}
+                        />
                         <span className="truncate text-left">{s.label}</span>
                       </button>
                     );
@@ -185,7 +250,9 @@ export default function ConfigScreen({ usuario, addToast }: Props) {
               </div>
             ))}
             {grupos.length === 0 && (
-              <p className="text-[11px] text-slate-400 text-center py-4">Nenhuma configuração encontrada.</p>
+              <p className="text-[11px] text-slate-400 text-center py-4">
+                Nenhuma configuração encontrada.
+              </p>
             )}
           </div>
         </nav>
