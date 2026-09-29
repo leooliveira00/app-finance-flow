@@ -1,0 +1,5 @@
+# Commits só de formatação, ignorados pelo `git blame` (o GitHub lê este arquivo
+# sozinho). Localmente: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style(frontend): aplica Prettier em todo o frontend
+2a34e2375ebd9dfea27c0a54e77a2cd750923eb2
