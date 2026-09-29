@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    // Modo estrito completo (noImplicitAny, strictNullChecks etc.). Depende dos
+    // tipos do React (@types/react, @types/react-dom): sem eles o JSX inteiro vira
+    // `any` e o tsc passa sem checar nada.
+    "strict": true,
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
