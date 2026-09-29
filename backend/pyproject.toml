@@ -6,8 +6,10 @@
 #
 #   docker compose exec backend ruff check app
 #   docker compose exec backend mypy app
+#   docker compose exec backend pytest
 #
-# Não há suíte de testes neste projeto, então estes dois comandos são o gate.
+# Estes três comandos são o gate. Os testes com dados reais de amostra (marker
+# `integration`) só rodam com `pytest --run-integration`.
 
 [project]
 name = "financeflow-backend"
@@ -57,3 +59,13 @@ check_untyped_defs = true
 # As bibliotecas do projeto (pandas, openpyxl, pypdf) não distribuem stubs
 # completos; exigir isso pararia o gate por motivo alheio ao código.
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `app` é importado a partir da raiz do backend (/app no container).
+pythonpath = ["."]
+# Mesmo motivo do ruff/mypy: /app não é gravável pelo usuário do container.
+cache_dir = "/tmp/.pytest_cache"
+markers = [
+  "integration: depende de dados reais de amostra; só roda com --run-integration",
+]

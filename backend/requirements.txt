@@ -36,6 +36,7 @@ bcrypt==5.0.0                  # hash de senhas
 sqlalchemy==2.0.52             # ORM
 psycopg[binary]==3.3.5         # driver PostgreSQL (psycopg3)
 
-# --- Qualidade: o único gate automatizado do backend (ver pyproject.toml) ---
+# --- Qualidade: gate automatizado do backend (ver pyproject.toml) ---
 ruff==0.16.5
 mypy==2.3.1
+pytest==9.1.1

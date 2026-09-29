@@ -36,13 +36,17 @@ O acesso em produção é por mesma origem: nginx serve o frontend e faz proxy d
 ```bash
 # Via docker-compose (recomendado; sobe API + Postgres juntos):
 docker compose up -d backend postgres  # API em 127.0.0.1:8000, docs em /docs
-# GATE do backend (rode após alterações; é a única verificação automatizada):
+# GATE do backend (rode após alterações):
 docker compose exec backend ruff check app
 docker compose exec backend mypy app
+docker compose exec backend pytest
 ```
-O gate é `ruff` + `mypy`, configurados em [pyproject.toml](backend/pyproject.toml).
-Não há suíte de testes (existe um `backend/tests/` com um arquivo, mas `pytest`
-não está nas dependências). Na subida, o `lifespan`
+O gate é `ruff` + `mypy` + `pytest`, configurados em [pyproject.toml](backend/pyproject.toml).
+Os testes ficam em `backend/tests/` e usam dados fictícios montados no próprio
+teste (sem arquivo, banco nem rede). Os que dependem de amostras reais, não
+versionadas, levam o marker `integration` e só rodam com `pytest --run-integration`;
+com a flag, dado ausente é falha, não skip ([conftest.py](backend/tests/conftest.py)).
+Na subida, o `lifespan`
 ([main.py](backend/app/main.py)) cria o schema (`create_all`), aplica migrações
 idempotentes ([migracoes.py](backend/app/db/migracoes.py)), roda o seed inicial e
 dispara a descoberta de módulos de rateio. Como a migração roda no `lifespan`, o
