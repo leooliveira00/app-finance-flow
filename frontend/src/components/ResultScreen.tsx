@@ -21,6 +21,8 @@ import {
 import * as api from '../api';
 import { moeda } from '../formatacao';
 import Secao from './resultado/Secao';
+import ModalAtribuirPj from './resultado/ModalAtribuirPj';
+import ModalReatribuirCc from './resultado/ModalReatribuirCc';
 import {
   ApiError,
   RespostaProcessamento,
@@ -177,8 +179,6 @@ export default function ResultScreen({
   // Dicionário código -> nome dos centros de custo (exibição amigável + seletor).
   const [centros, setCentros] = useState<CentroCusto[]>([]);
   const [atribuindo, setAtribuindo] = useState<DivergenciaResultado | null>(null);
-  const [ccSelecionado, setCcSelecionado] = useState('');
-  const [buscaCc, setBuscaCc] = useState('');
   const [salvandoPJ, setSalvandoPJ] = useState(false);
   const [menuAberto, setMenuAberto] = useState<string | null>(null);
   const [filtroCc, setFiltroCc] = useState(''); // busca no card Rateio por Centro de Custo
@@ -198,7 +198,6 @@ export default function ResultScreen({
     new Map(),
   );
   const [reatribuindo, setReatribuindo] = useState<number | null>(null);
-  const [buscaReCc, setBuscaReCc] = useState('');
 
   // Resultado EXIBIDO = base + ajustes (agregado recomputado). Preserva total por empresa.
   const resultado = useMemo(
@@ -245,17 +244,6 @@ export default function ResultScreen({
   }, [centros]);
   const nomeCc = (codigo: string) => nomePorCodigo.get((codigo || '').trim()) || codigo || '—';
 
-  // Combobox de centro de custo (modal de atribuição): filtra por código ou nome.
-  const centrosFiltrados = useMemo(() => {
-    const q = buscaCc.trim().toLowerCase();
-    const base = q
-      ? centros.filter(
-          (c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q),
-        )
-      : centros;
-    return base.slice(0, 60); // limita a lista renderizada; refine a busca para ver mais
-  }, [centros, buscaCc]);
-
   // Atribuição de PJ: só faz sentido quando temos CPF (Unimed) e há reprocessamento.
   const ehCpf = (v: string) => /^\d{11}$/.test((v || '').replace(/\D/g, ''));
   const podeAtribuirPJ = (d: DivergenciaResultado) =>
@@ -263,15 +251,15 @@ export default function ResultScreen({
     (d.tipo === 'titular_nao_encontrado' || d.tipo === 'colaborador_pj') &&
     ehCpf(d.referencia);
 
-  const confirmarAtribuicao = async () => {
-    if (!atribuindo || !ccSelecionado || !onReprocessar) return;
+  const confirmarAtribuicao = async (centroCusto: string) => {
+    if (!atribuindo || !centroCusto || !onReprocessar) return;
     const cpf = atribuindo.referencia.replace(/\D/g, '');
     const nome = atribuindo.nome;
     const empresa = atribuindo.empresa || '';
     setAtribuindo(null);
     setSalvandoPJ(true);
     try {
-      await api.adicionarPJ(cpf, nome, { centro_custo: ccSelecionado, empresa });
+      await api.adicionarPJ(cpf, nome, { centro_custo: centroCusto, empresa });
       addToast(`${nome || cpf} atribuído a PJ. Recalculando...`, 'success');
       await onReprocessar();
       addToast('Processamento concluído.', 'success');
@@ -628,7 +616,6 @@ export default function ResultScreen({
                                                     onClick={() => {
                                                       setMenuAberto(null);
                                                       setReatribuindo(idx);
-                                                      setBuscaReCc('');
                                                     }}
                                                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
                                                   >
@@ -891,8 +878,6 @@ export default function ResultScreen({
                             onClick={() => {
                               setMenuAberto(null);
                               setAtribuindo(d);
-                              setCcSelecionado('');
-                              setBuscaCc('');
                             }}
                             className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
                             title="Atribuir a PJ e escolher o centro de custo"
@@ -1095,113 +1080,14 @@ export default function ResultScreen({
       {menuAberto && <div className="fixed inset-0 z-10" onClick={() => setMenuAberto(null)} />}
 
       {/* Modal: atribuir divergência a PJ + escolher centro de custo */}
-      {atribuindo &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
-            onClick={() => setAtribuindo(null)}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                  <Briefcase className="h-5 w-5 text-brand-900" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900">Atribuir a PJ</h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    <strong className="text-slate-700">
-                      {atribuindo.nome || atribuindo.referencia}
-                    </strong>{' '}
-                    será cadastrado como PJ e rateado ao centro de custo escolhido
-                    {atribuindo.empresa ? (
-                      <>
-                        {' '}
-                        (empresa <strong>{atribuindo.empresa}</strong>)
-                      </>
-                    ) : null}
-                    . Passa a valer também nas próximas execuções.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
-                  Centro de custo
-                </label>
-                <div className="relative">
-                  <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    autoFocus
-                    value={buscaCc}
-                    onChange={(e) => setBuscaCc(e.target.value)}
-                    placeholder="Buscar por código ou nome…"
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                  />
-                </div>
-                <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
-                  {centrosFiltrados.map((c) => {
-                    const sel = c.codigo === ccSelecionado;
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => setCcSelecionado(c.codigo)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 text-left cursor-pointer transition-colors ${sel ? 'bg-brand-50' : 'hover:bg-slate-50'}`}
-                      >
-                        <span
-                          className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${sel ? 'bg-brand-900 border-brand-900' : 'border-slate-300'}`}
-                        >
-                          {sel && <Check className="h-2.5 w-2.5 text-white" />}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-sm text-slate-800 truncate">
-                            {c.nome || '—'}
-                          </span>
-                          <span className="block text-[10px] font-mono text-slate-400">
-                            {c.codigo}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                  {centros.length === 0 && (
-                    <p className="text-[11px] text-amber-600 p-3">
-                      Nenhum centro de custo cadastrado. Cadastre em Configurações ▸ Centros de
-                      custo.
-                    </p>
-                  )}
-                  {centros.length > 0 && centrosFiltrados.length === 0 && (
-                    <p className="text-xs text-slate-400 p-3 text-center">
-                      Nenhum centro de custo encontrado.
-                    </p>
-                  )}
-                </div>
-                {buscaCc.trim() === '' && centros.length > centrosFiltrados.length && (
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Mostrando {centrosFiltrados.length} de {centros.length}. Digite para refinar.
-                  </p>
-                )}
-              </div>
-              <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-                <button
-                  onClick={() => setAtribuindo(null)}
-                  className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmarAtribuicao}
-                  disabled={!ccSelecionado}
-                  className="py-2 px-4 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Atribuir e reprocessar
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      {atribuindo && (
+        <ModalAtribuirPj
+          divergencia={atribuindo}
+          centros={centros}
+          onCancelar={() => setAtribuindo(null)}
+          onConfirmar={confirmarAtribuicao}
+        />
+      )}
 
       {/* Overlay de reprocessamento */}
       {salvandoPJ &&
@@ -1216,104 +1102,23 @@ export default function ResultScreen({
         )}
 
       {/* Modal: reatribuir um colaborador a outro centro de custo */}
-      {reatribuindo !== null &&
-        resultadoBase.itens[reatribuindo] &&
-        createPortal(
-          (() => {
+      {reatribuindo !== null && resultadoBase.itens[reatribuindo] && (
+        <ModalReatribuirCc
+          item={resultadoBase.itens[reatribuindo]}
+          centros={centros}
+          nomeCc={nomeCc}
+          onCancelar={() => setReatribuindo(null)}
+          onEscolher={(codigo) => {
             const item = resultadoBase.itens[reatribuindo];
-            const q = buscaReCc.trim().toLowerCase();
-            const lista = (
-              q
-                ? centros.filter(
-                    (c) => c.codigo.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q),
-                  )
-                : centros
-            ).slice(0, 60);
-            const escolher = (codigo: string) => {
-              setAjustesMap((prev) => {
-                const n = new Map(prev);
-                n.set(reatribuindo, { cc: codigo, classe: item.classe_valor });
-                return n;
-              });
-              setReatribuindo(null);
-            };
-            return (
-              <div
-                className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
-                onClick={() => setReatribuindo(null)}
-              >
-                <div
-                  className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                      <Building2 className="h-5 w-5 text-brand-900" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-slate-900">
-                        Reatribuir centro de custo
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        <strong className="text-slate-700">{item.nome}</strong> · {item.empresa} ·{' '}
-                        {moeda(item.valor)}. Atual: <strong>{nomeCc(item.centro_custo)}</strong> (
-                        {item.centro_custo}). O valor migra para o CC escolhido; o total da empresa
-                        não muda.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <div className="relative">
-                      <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        autoFocus
-                        value={buscaReCc}
-                        onChange={(e) => setBuscaReCc(e.target.value)}
-                        placeholder="Buscar por código ou nome…"
-                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                      />
-                    </div>
-                    <div className="mt-2 border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100">
-                      {lista.map((c) => (
-                        <button
-                          key={c.id}
-                          onClick={() => escolher(c.codigo)}
-                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left cursor-pointer hover:bg-slate-50 ${c.codigo === item.centro_custo ? 'bg-slate-50' : ''}`}
-                        >
-                          <span className="min-w-0">
-                            <span className="block text-sm text-slate-800 truncate">
-                              {c.nome || '—'}
-                            </span>
-                            <span className="block text-[10px] font-mono text-slate-400">
-                              {c.codigo}
-                            </span>
-                          </span>
-                        </button>
-                      ))}
-                      {centros.length === 0 && (
-                        <p className="text-[11px] text-amber-600 p-3">
-                          Nenhum centro de custo cadastrado.
-                        </p>
-                      )}
-                      {centros.length > 0 && lista.length === 0 && (
-                        <p className="text-xs text-slate-400 p-3 text-center">Nenhum encontrado.</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() => setReatribuindo(null)}
-                      className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })(),
-          document.body,
-        )}
+            setAjustesMap((prev) => {
+              const n = new Map(prev);
+              n.set(reatribuindo, { cc: codigo, classe: item.classe_valor });
+              return n;
+            });
+            setReatribuindo(null);
+          }}
+        />
+      )}
     </div>
   );
 }
