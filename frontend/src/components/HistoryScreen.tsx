@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from '
 import { createPortal } from 'react-dom';
 import { Toast } from '../types';
 import * as api from '../api';
+import { moeda } from '../formatacao';
 import { ApiError, Execucao, RespostaProcessamento, Resultado } from '../api';
 import {
   FileDown,
@@ -62,9 +63,6 @@ function Conta({ referencia }: { referencia?: string }) {
 
 function tituloTipo(tipo: string): string {
   return api.nomeRateio(tipo);
-}
-function moeda(v: string | number): string {
-  return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 function dataHora(iso: string): string {
   if (!iso) return '—';

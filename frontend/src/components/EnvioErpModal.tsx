@@ -14,16 +14,13 @@ import {
 } from 'lucide-react';
 import * as api from '../api';
 import { ApiError, Execucao, EnvioResposta } from '../api';
+import { moeda } from '../formatacao';
 import { Toast } from '../types';
 
 interface Props {
   execucao: Execucao;
   onClose: (atualizada?: Execucao) => void;
   addToast: (message: string, type: Toast['type']) => void;
-}
-
-function moeda(valor: string | number): string {
-  return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function dataHora(iso: string): string {

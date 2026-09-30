@@ -1,4 +1,4 @@
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   FileDown,
@@ -17,6 +17,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import * as api from '../api';
+import { moeda } from '../formatacao';
+import Secao from './resultado/Secao';
 import {
   ApiError,
   RespostaProcessamento,
@@ -83,10 +85,6 @@ function plural(n: number, singular: string, plural: string): string {
   return n === 1 ? singular : plural;
 }
 
-function moeda(valor: string | number): string {
-  return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
 const ROTULO_DIVERGENCIA: Record<string, string> = {
   titular_nao_encontrado: 'Titular não encontrado',
   colaborador_desligado: 'Colaborador desligado',
@@ -139,37 +137,6 @@ function TabelaOcorrencias({ ocorrencias }: { ocorrencias: OcorrenciaCopart[] })
           )}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function Secao({
-  titulo,
-  contador,
-  children,
-}: {
-  titulo: string;
-  contador?: number;
-  children: ReactNode;
-}) {
-  const [aberto, setAberto] = useState(false);
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-      <div
-        className="p-4 px-5 flex items-center gap-2 cursor-pointer select-none"
-        onClick={() => setAberto((a) => !a)}
-      >
-        <ChevronRight
-          className={`h-4 w-4 text-slate-400 transition-transform ${aberto ? 'rotate-90' : ''}`}
-        />
-        <h3 className="text-sm font-bold text-slate-900">{titulo}</h3>
-        {contador != null && (
-          <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-            {contador}
-          </span>
-        )}
-      </div>
-      {aberto && <div className="border-t border-slate-100">{children}</div>}
     </div>
   );
 }

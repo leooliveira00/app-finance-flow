@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import * as api from '../api';
+import { moeda } from '../formatacao';
 import {
   ApiError,
   BoletoClaro,
@@ -38,10 +39,6 @@ interface Props {
   somenteLeitura?: boolean;
   /** Conta do boleto -> nº do título lançado no ERP (consulta do histórico). */
   titulosPorConta?: Record<string, string>;
-}
-
-function moeda(valor: string | number): string {
-  return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 /** Soma valores que chegam como string do backend (Decimal serializado). */
