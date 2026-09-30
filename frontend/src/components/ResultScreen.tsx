@@ -3,12 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   FileDown,
   Check,
-  AlertTriangle,
-  Users,
-  Banknote,
   Info,
-  CheckCircle2,
-  XCircle,
   ChevronRight,
   ChevronDown,
   Building2,
@@ -23,6 +18,9 @@ import { moeda } from '../formatacao';
 import Secao from './resultado/Secao';
 import ModalAtribuirPj from './resultado/ModalAtribuirPj';
 import ModalReatribuirCc from './resultado/ModalReatribuirCc';
+import KpisRateio from './resultado/KpisRateio';
+import SecaoEstornos from './resultado/SecaoEstornos';
+import SecaoReconciliacao from './resultado/SecaoReconciliacao';
 import {
   ApiError,
   RespostaProcessamento,
@@ -414,51 +412,14 @@ export default function ResultScreen({
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex items-center gap-4">
-          <div className="h-12 w-12 bg-brand-50 border border-brand-100 rounded-xl flex items-center justify-center shrink-0">
-            <Users className="h-6 w-6 text-brand-900" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Colaboradores Rateados
-            </span>
-            <span className="text-2xl font-bold text-slate-900">{total_itens}</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex items-center gap-4">
-          <div className="h-12 w-12 bg-brand-950 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-            <Banknote className="h-6 w-6 text-brand-300" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Valor Final
-            </span>
-            <span className="text-2xl font-black text-brand-950 font-mono">
-              {moeda(valorFinal)}
-            </span>
-            {totalEstornos !== 0 && (
-              <span className="text-[10px] text-slate-500 block">
-                rateado {moeda(valorRateado)} + estornos {moeda(totalEstornos)}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex items-center gap-4">
-          <div className="h-12 w-12 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center shrink-0">
-            <AlertTriangle className="h-6 w-6 text-amber-500" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Divergências / Avisos
-            </span>
-            <span className="text-2xl font-bold text-slate-900">
-              {resultado.divergencias.length}{' '}
-              <span className="text-base text-slate-400">/ {resultado.avisos.length}</span>
-            </span>
-          </div>
-        </div>
-      </div>
+      <KpisRateio
+        totalItens={total_itens}
+        valorFinal={valorFinal}
+        valorRateado={valorRateado}
+        totalEstornos={totalEstornos}
+        qtdDivergencias={resultado.divergencias.length}
+        qtdAvisos={resultado.avisos.length}
+      />
 
       {/* DESTAQUE: Rateio por Centro de Custo (o que vai ao ERP) — aberto por padrão */}
       <Secao
@@ -697,131 +658,10 @@ export default function ResultScreen({
       </Secao>
 
       {/* Estornos / Créditos — negativos que só subtraem no total (sem CC) */}
-      {resultado.estornos.length > 0 && (
-        <Secao
-          titulo="Estornos / Créditos (não rateados por CC)"
-          contador={resultado.estornos.length}
-        >
-          <div className="px-5 py-2 bg-slate-50 text-[11px] text-slate-500">
-            Valores negativos (ex.: exclusões retroativas). Não têm centro de custo; apenas subtraem
-            do total final.
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-400 font-bold border-y border-slate-100 text-[10px] uppercase tracking-wider">
-                  <th className="py-3 px-5">Operadora</th>
-                  <th className="py-3 px-4">Titular / Referência</th>
-                  <th className="py-3 px-4 text-right">Vidas</th>
-                  <th className="py-3 px-5 text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {resultado.estornos.map((e, i) => (
-                  <tr key={i} className="font-medium">
-                    <td className="py-3 px-5 capitalize">{e.operadora}</td>
-                    <td className="py-3 px-4">{e.referencia}</td>
-                    <td className="py-3 px-4 text-right">{e.num_vidas}</td>
-                    <td className="py-3 px-5 text-right font-mono font-bold text-rose-600">
-                      {moeda(e.valor)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Secao>
-      )}
+      <SecaoEstornos estornos={resultado.estornos} />
 
       {/* Reconciliação — colapsado */}
-      {resultado.reconciliacao.length > 0 && (
-        <Secao titulo="Reconciliação com NF / Boleto" contador={resultado.reconciliacao.length}>
-          {/* Consistência POR EMPRESA: valor final a lançar (rateado + estornos) deve = documento. */}
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {resultado.reconciliacao.map((r, i) => {
-              const doc = Number(r.valor_documento || 0);
-              const valorFinal = Number(r.valor_base || 0);
-              const diferenca = Number(r.diferenca || 0);
-              const consistente = r.bate;
-              const mesma = (e: string | null) =>
-                (e || '').toUpperCase().trim() === (r.empresa || '').toUpperCase().trim();
-              const rateadoEmp = resultado.itens
-                .filter((it) => mesma(it.empresa))
-                .reduce((s, it) => s + Number(it.valor || 0), 0);
-              const estornoEmp = resultado.estornos
-                .filter((e) => mesma(e.empresa))
-                .reduce((s, e) => s + Number(e.valor || 0), 0);
-              const divsEmp = resultado.divergencias.filter((d) => mesma(d.empresa));
-              const somaDiv = divsEmp.reduce((s, d) => s + Number(d.valor || 0), 0);
-              const naoExplicado = diferenca - somaDiv;
-              return (
-                <div
-                  key={i}
-                  className={`rounded-xl border p-4 ${consistente ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    {consistente ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-rose-500" />
-                    )}
-                    <span className="text-sm font-bold text-slate-900">
-                      {r.empresa || '(empresa não identificada)'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 capitalize">
-                      · {r.operadora} · {r.operadora === 'unimed' ? 'NF' : 'boleto'}
-                    </span>
-                    <span
-                      className={`ml-auto text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border ${consistente ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}
-                    >
-                      {consistente ? 'Consistente' : 'Inconsistência'}
-                    </span>
-                  </div>
-                  <div className="text-xs font-mono space-y-1 max-w-md">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Documento (NF/boleto)</span>
-                      <span className="font-semibold">{moeda(doc)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Valor final a lançar</span>
-                      <span className="font-semibold">{moeda(valorFinal)}</span>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-slate-400">
-                      <span className="pl-3">
-                        rateado {moeda(rateadoEmp)} · estornos {moeda(estornoEmp)}
-                      </span>
-                      <span />
-                    </div>
-                    <div
-                      className={`flex justify-between border-t border-slate-200 pt-1 font-bold ${consistente ? 'text-emerald-700' : 'text-rose-700'}`}
-                    >
-                      <span>Diferença (documento − final)</span>
-                      <span>{moeda(diferenca)}</span>
-                    </div>
-                    {!consistente && (
-                      <div className="pt-1 pl-3 text-[11px] text-slate-500 space-y-0.5">
-                        <div className="flex justify-between">
-                          <span>├ Divergências não rateadas ({divsEmp.length})</span>
-                          <span>{moeda(somaDiv)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>└ Não explicado (extração/arquivo)</span>
-                          <span>{moeda(naoExplicado)}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[11px] mt-2 leading-relaxed text-slate-500">
-                    {consistente
-                      ? 'O valor final a lançar (com estornos já abatidos) confere com o documento desta empresa.'
-                      : 'O valor a lançar difere do documento. Resolva as divergências desta empresa. "Não explicado" indica erro de extração ou arquivo do período/empresa errado.'}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </Secao>
-      )}
+      <SecaoReconciliacao resultado={resultado} />
 
       {/* Avisos — colapsado */}
       {resultado.avisos.length > 0 && (
