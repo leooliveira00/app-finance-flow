@@ -13,19 +13,17 @@ import {
   Briefcase,
   MoreVertical,
   Search,
-  X,
   Loader2,
 } from 'lucide-react';
 import * as api from '../api';
 import { moeda } from '../formatacao';
 import Secao from './resultado/Secao';
-import {
-  ApiError,
-  RespostaProcessamento,
-  ItemCopartResultado,
-  OcorrenciaCopart,
-  comoResultadoCopart,
-} from '../api';
+import ModalAuditoria from './coparticipacao/ModalAuditoria';
+import ModalCompetenciaTxt from './coparticipacao/ModalCompetenciaTxt';
+import ModalConfirmarPj from './coparticipacao/ModalConfirmarPj';
+import TabelaOcorrencias from './coparticipacao/TabelaOcorrencias';
+import { rotuloOperadora } from './coparticipacao/rotulos';
+import { ApiError, RespostaProcessamento, ItemCopartResultado, comoResultadoCopart } from '../api';
 import { Toast } from '../types';
 import CpfCell from './CpfCell';
 import Dropdown from './Dropdown';
@@ -45,12 +43,6 @@ const COLS: Array<{ key: keyof ItemCopartResultado; label: string; num?: boolean
   { key: 'valor_descontado', label: 'A Descontar', num: true },
 ];
 const NUM_COLS = new Set<string>(['num_eventos', 'valor_bruto', 'valor_descontado']);
-
-const ROTULO_OPERADORA: Record<string, string> = { unimed: 'Unimed', bradesco: 'Bradesco' };
-function rotuloOperadora(op: string): string {
-  const chave = (op || '').toLowerCase();
-  return ROTULO_OPERADORA[chave] ?? (op || '—');
-}
 
 /** Chave única da linha: o CPF sozinho repete quando o colaborador tem dois
  *  planos, e chave repetida faz o React embaralhar/duplicar linhas ao reordenar. */
@@ -95,52 +87,6 @@ const ROTULO_DIVERGENCIA: Record<string, string> = {
 // Divergências que podem ser reclassificadas como PJ.
 const ELEGIVEL_PJ = new Set(['titular_nao_encontrado', 'colaborador_desligado']);
 
-/** Ocorrências (eventos) de um colaborador — usada na linha expandida e na auditoria. */
-function TabelaOcorrencias({ ocorrencias }: { ocorrencias: OcorrenciaCopart[] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
-        <thead>
-          <tr className="text-slate-400 border-b border-slate-100 text-left">
-            <th className="py-1.5 pr-3 font-bold">Data</th>
-            <th className="py-1.5 pr-3 font-bold">Beneficiário</th>
-            <th className="py-1.5 pr-3 font-bold">Procedimento</th>
-            <th className="py-1.5 pr-3 font-bold">Classificação</th>
-            <th className="py-1.5 text-right font-bold">Valor</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 text-slate-700">
-          {ocorrencias.map((o, j) => (
-            <tr key={j}>
-              <td className="py-1.5 pr-3 text-slate-500 whitespace-nowrap">{o.data || '—'}</td>
-              <td className="py-1.5 pr-3">{o.beneficiario}</td>
-              <td className="py-1.5 pr-3">
-                {o.procedimento}
-                {!o.classificado && (
-                  <span className="ml-1.5 text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1 py-0.5 rounded">
-                    não mapeado
-                  </span>
-                )}
-              </td>
-              <td className="py-1.5 pr-3 capitalize">
-                {o.tipo || <span className="text-rose-500">—</span>}
-              </td>
-              <td className="py-1.5 text-right font-mono">{moeda(o.valor)}</td>
-            </tr>
-          ))}
-          {ocorrencias.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-2 text-slate-400">
-                Nenhuma ocorrência registrada.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export default function CoparticipacaoResultScreen({
   tipo,
   competence,
@@ -157,9 +103,8 @@ export default function CoparticipacaoResultScreen({
   const [baixando, setBaixando] = useState(false);
   const [baixandoTxt, setBaixandoTxt] = useState(false);
   const [baixandoPj, setBaixandoPj] = useState(false);
-  // Coparticipação não tem competência armazenada — pedimos no export do TXT.
-  const [competenciaTxt, setCompetenciaTxt] = useState<string | null>(null);
-  // Empresa escolhida para o export TXT (o modal de competência abre em seguida).
+  // Empresa escolhida para o export TXT; não nula = modal de competência aberto
+  // (a coparticipação não armazena competência, então ela é pedida no modal).
   const [exportEmpresa, setExportEmpresa] = useState<string | null>(null);
   const { total_itens, alertas_validacao } = resposta;
   const r = comoResultadoCopart(resposta);
@@ -389,18 +334,15 @@ export default function CoparticipacaoResultScreen({
   const iniciarExportTxt = (empresa: string) => {
     setMenuAberto(null);
     setExportEmpresa(empresa);
-    setCompetenciaTxt('');
   };
 
   const fecharExportTxt = () => {
-    setCompetenciaTxt(null);
     setExportEmpresa(null);
   };
 
-  // TXT de redundância p/ importação manual no ERP. Converte AAAA-MM -> AAAAMM.
-  const handleBaixarTxt = async () => {
-    if (!competenciaTxt || !exportEmpresa) return;
-    const competencia = competenciaTxt.replace(/\D/g, '');
+  // TXT de redundância p/ importação manual no ERP (competência já em AAAAMM).
+  const handleBaixarTxt = async (competencia: string) => {
+    if (!competencia || !exportEmpresa) return;
     setBaixandoTxt(true);
     try {
       await api.baixarTxt(tipo, competencia, exportEmpresa);
@@ -924,128 +866,26 @@ export default function CoparticipacaoResultScreen({
       {auditando && <ModalAuditoria item={auditando} onClose={() => setAuditando(null)} />}
 
       {/* Modal: competência do TXT (coparticipação não a armazena) */}
-      {competenciaTxt !== null &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
-            onClick={() => !baixandoTxt && fecharExportTxt()}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                  <FileText className="h-5 w-5 text-brand-900" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Exportar TXT: {exportEmpresa}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Informe a{' '}
-                    <strong className="text-slate-700">
-                      data de referência (competência de pagamento)
-                    </strong>
-                    . Gera uma linha por colaborador de{' '}
-                    <strong className="text-slate-700">{exportEmpresa}</strong> no layout de
-                    importação manual do ERP.
-                  </p>
-                </div>
-              </div>
-              <label className="block mt-4">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  Competência de pagamento
-                </span>
-                <input
-                  type="month"
-                  value={competenciaTxt}
-                  onChange={(e) => setCompetenciaTxt(e.target.value)}
-                  className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                />
-              </label>
-              <div className="mt-4 flex items-start gap-2 bg-amber-50 border border-amber-200/70 rounded-xl p-3 text-[11px] text-amber-900 leading-relaxed">
-                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <span>
-                  Colaboradores <strong>PJ não entram no arquivo</strong>: o desconto deles é
-                  cobrado na nota.
-                  {qtdPj > 0 && (
-                    <span className="block mt-1">
-                      {qtdPj} colaborador(es) PJ ser{qtdPj > 1 ? 'ão' : 'á'} omitido(s).
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-                <button
-                  onClick={fecharExportTxt}
-                  disabled={baixandoTxt}
-                  className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleBaixarTxt}
-                  disabled={baixandoTxt || !competenciaTxt}
-                  className="flex items-center justify-center gap-1.5 py-2 px-4 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {baixandoTxt ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
-                  )}
-                  {baixandoTxt ? 'Gerando…' : 'Exportar TXT'}
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      {exportEmpresa !== null && (
+        <ModalCompetenciaTxt
+          empresa={exportEmpresa}
+          qtdPj={qtdPj}
+          baixando={baixandoTxt}
+          onCancelar={fecharExportTxt}
+          onExportar={handleBaixarTxt}
+        />
+      )}
 
       {/* Modal: mover para PJ — perguntar se quer selecionar mais colaboradores */}
-      {confirmandoPJ &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
-            onClick={() => setConfirmandoPJ(null)}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-                  <Briefcase className="h-5 w-5 text-brand-900" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900">Classificar como PJ</h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    <strong className="text-slate-700">
-                      {confirmandoPJ.nome || confirmandoPJ.cpf}
-                    </strong>{' '}
-                    será classificado como PJ. Deseja selecionar outros colaboradores antes de
-                    processar?
-                  </p>
-                </div>
-              </div>
-              <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-                <button
-                  onClick={processarUm}
-                  className="py-2 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Não, processar agora
-                </button>
-                <button
-                  onClick={selecionarMais}
-                  className="py-2 px-4 bg-brand-900 hover:bg-brand-950 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Sim, selecionar mais
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      {confirmandoPJ && (
+        <ModalConfirmarPj
+          cpf={confirmandoPJ.cpf}
+          nome={confirmandoPJ.nome}
+          onProcessarAgora={processarUm}
+          onSelecionarMais={selecionarMais}
+          onCancelar={() => setConfirmandoPJ(null)}
+        />
+      )}
 
       {/* Avisos (teto) */}
       {r.avisos.length > 0 && (
@@ -1148,87 +988,5 @@ export default function CoparticipacaoResultScreen({
           document.body,
         )}
     </div>
-  );
-}
-
-function Campo({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
-  return (
-    <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
-      <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-        {label}
-      </span>
-      <span
-        className={`block font-mono font-bold ${destaque ? 'text-brand-950' : 'text-slate-800'}`}
-      >
-        {valor}
-      </span>
-    </div>
-  );
-}
-
-function ModalAuditoria({ item, onClose }: { item: ItemCopartResultado; onClose: () => void }) {
-  return createPortal(
-    <div
-      className="fixed inset-0 z-30 bg-slate-900/40 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-slate-900 truncate">{item.nome}</h3>
-            <p className="text-xs text-slate-500 font-mono flex items-center gap-1 flex-wrap">
-              <CpfCell cpf={item.cpf} /> ·{' '}
-              {item.pj ? 'PJ (salário padrão)' : 'CLT (salário da API)'}
-              {/* A auditoria é do plano desta linha; o teto abaixo é da PESSOA. */}
-              <span>· {rotuloOperadora(item.operadora)}</span>
-              {item.matricula && <span>· Matrícula {item.matricula}</span>}
-              {item.filial && <span>· Filial {item.filial}</span>}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-4 overflow-y-auto">
-          <div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">
-              Faixa salarial atribuída
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              {/* Salário e Teto são dados de auditoria: só vêm da API para admin_area/admin. */}
-              {item.salario != null && <Campo label="Salário usado" valor={moeda(item.salario)} />}
-              <Campo label="Faixa" valor={item.faixa} />
-              {item.teto != null && <Campo label="Teto" valor={moeda(item.teto)} />}
-              <Campo label="A descontar" valor={moeda(item.valor_descontado)} destaque />
-            </div>
-            {item.teto_aplicado && (
-              <p className="text-[11px] text-amber-700 mt-2">
-                Teto atingido. O limite é do colaborador, sobre a soma dos planos; o valor bruto
-                deste plano é {moeda(item.valor_bruto)}. <strong>Não enviado ao ERP</strong>: requer
-                tratativa manual.
-              </p>
-            )}
-            {item.pj && (
-              <p className="text-[11px] text-brand-800 mt-2">
-                Colaborador PJ: salário padrão aplicado, sem consulta ao Protheus.
-              </p>
-            )}
-          </div>
-          <div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
-              Classificação por evento ({item.ocorrencias.length})
-            </div>
-            <TabelaOcorrencias ocorrencias={item.ocorrencias} />
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
   );
 }
