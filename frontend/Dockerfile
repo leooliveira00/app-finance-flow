@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1.7
 #
 # Frontend do FinanceFlow: build do app Vite servido por nginx
-# (node 20-alpine, nginx 1.27-alpine).
+# (node 22-alpine, nginx 1.27-alpine).
 
 # --- Estágio 1: build dos estáticos ---
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
