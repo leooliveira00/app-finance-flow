@@ -37,7 +37,7 @@ jobs:
       - run: pytest -rs
 
   frontend:
-    name: Frontend (typecheck, lint, format, build)
+    name: Frontend (typecheck, lint, format, test, build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,4 +53,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm test
       - run: npm run build

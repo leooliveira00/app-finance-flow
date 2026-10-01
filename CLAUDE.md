@@ -80,10 +80,18 @@ npm run preview    # serve o dist/
 npm run typecheck  # checagem de tipos: `tsc --noEmit`
 npm run lint       # ESLint (flat config em eslint.config.js): TS + regras do React
 npm run format     # Prettier (.prettierrc); `format:check` só verifica
+npm test           # Vitest + Testing Library (jsdom); `test:watch` em modo contínuo
 ```
-Após alterações no frontend, rode `typecheck`, `lint` e `format:check`: são as
-verificações automatizadas do frontend (não há testes de UI). O ESLint cuida de
-correção; formatação é só do Prettier.
+Após alterações no frontend, rode `typecheck`, `lint`, `format:check` e `test`:
+são as verificações automatizadas do frontend. O ESLint cuida de correção;
+formatação é só do Prettier. **Requer Node ≥ 22.12** (`engines` no
+package.json), o mesmo da imagem e do CI.
+
+Testes ficam ao lado do código (`*.test.ts(x)`), com `describe`/`it`/`expect`
+importados de `vitest` (sem globals); o setup em
+[src/test/setup.ts](frontend/src/test/setup.ts) liga os matchers do jest-dom e
+o cleanup. A prioridade são funções puras e componentes de exibição; as
+telas-pai (`ResultScreen`, `CoparticipacaoResultScreen`) ainda não têm teste.
 
 ## Arquitetura do backend
 

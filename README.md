@@ -50,7 +50,7 @@ precisa saber.
 | Banco de dados | PostgreSQL |
 | Autenticação | JWT (bcrypt para senhas) |
 | Infraestrutura | Docker Compose (nginx no frontend, uvicorn no backend) |
-| Qualidade | ruff + mypy + pytest (backend), tsc + ESLint + Prettier (frontend) |
+| Qualidade | ruff + mypy + pytest (backend), tsc + ESLint + Prettier + Vitest (frontend) |
 
 ## Arquitetura
 
@@ -119,6 +119,7 @@ docker compose exec backend pytest           # testes (dados fictícios, sem red
 cd frontend && npm run typecheck             # tsc --noEmit
 cd frontend && npm run lint                  # ESLint
 cd frontend && npm run format:check          # Prettier
+cd frontend && npm test                      # Vitest + Testing Library
 ```
 
 ## Dados de demonstração

@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -33,6 +34,12 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
       },
+    },
+    // Vitest (`npm test`): DOM simulado pelo jsdom; o setup liga os matchers do
+    // jest-dom e desmonta o que cada teste renderizou.
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.ts'],
     },
   };
 });
