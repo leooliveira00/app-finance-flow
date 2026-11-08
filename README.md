@@ -9,6 +9,29 @@ com backend, banco de dados, autenticação e uma camada de integração com ERP
 construída para demonstrar um fluxo de automação financeira de ponta a ponta,
 do upload do documento ao lançamento contábil.
 
+> Versão anonimizada para portfólio, com dados inteiramente fictícios.
+
+![Painel de rateios: processos disponíveis por área](docs/screenshots/financeflow-painel.jpg)
+
+<details>
+<summary><b>Mais telas</b></summary>
+
+<br>
+
+**Resultado do processamento:** desconto por colaborador, bloqueio por teto e divergências sinalizadas antes do lançamento no ERP
+
+![Resultado](docs/screenshots/financeflow-resultado.jpg)
+
+**Importação:** envio dos arquivos do processo, com as orientações de cada rateio
+
+![Importação](docs/screenshots/financeflow-upload.jpg)
+
+**Configurações:** parâmetros de cada rateio (faixas salariais e teto da coparticipação) e cadastros compartilhados
+
+![Configurações](docs/screenshots/financeflow-configuracoes.jpg)
+
+</details>
+
 ## Problema
 
 Processos de rateio contábil, que consistem em dividir uma fatura entre várias
